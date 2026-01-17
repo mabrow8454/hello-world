@@ -33,7 +33,13 @@ function init() {
         0.1,
         10000
     );
-    camera.position.set(0, 200, 500);
+    // Adjust camera position based on screen size
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        camera.position.set(0, 300, 800);
+    } else {
+        camera.position.set(0, 200, 500);
+    }
     camera.lookAt(0, 0, 0);
 
     // Create renderer
@@ -250,6 +256,69 @@ function addOrbitControls() {
         isMouseDown = false;
     });
 
+    // Touch controls for mobile
+    let touches = [];
+    let lastTouchDistance = 0;
+
+    renderer.domElement.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+
+        if (touches.length === 1) {
+            mouseX = touches[0].clientX;
+            mouseY = touches[0].clientY;
+        } else if (touches.length === 2) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+
+    renderer.domElement.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+
+        if (touches.length === 1) {
+            // Single touch - rotate
+            const deltaX = touches[0].clientX - mouseX;
+            const deltaY = touches[0].clientY - mouseY;
+            mouseX = touches[0].clientX;
+            mouseY = touches[0].clientY;
+
+            targetRotationY += deltaX * 0.005;
+            targetRotationX += deltaY * 0.005;
+            targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotationX));
+        } else if (touches.length === 2) {
+            // Pinch to zoom
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (lastTouchDistance > 0) {
+                const delta = distance - lastTouchDistance;
+                const zoomSpeed = 0.005;
+                camera.position.multiplyScalar(1 - delta * zoomSpeed);
+
+                // Limit zoom
+                const camDistance = camera.position.length();
+                if (camDistance < 50) {
+                    camera.position.normalize().multiplyScalar(50);
+                } else if (camDistance > 1500) {
+                    camera.position.normalize().multiplyScalar(1500);
+                }
+            }
+            lastTouchDistance = distance;
+        }
+    }, { passive: false });
+
+    renderer.domElement.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        if (touches.length === 0) {
+            lastTouchDistance = 0;
+        }
+    }, { passive: false });
+
     // Camera rotation update
     function updateCameraRotation() {
         currentRotationX += (targetRotationX - currentRotationX) * 0.1;
@@ -289,6 +358,21 @@ function addOrbitControls() {
 }
 
 function setupEventListeners() {
+    // Toggle panel button (mobile)
+    const toggleBtn = document.getElementById('toggle-panel');
+    const infoPanel = document.getElementById('info-panel');
+    const isMobile = window.innerWidth <= 768;
+
+    // Start with panel collapsed on mobile
+    if (isMobile) {
+        infoPanel.classList.add('collapsed');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        infoPanel.classList.toggle('collapsed');
+        toggleBtn.textContent = infoPanel.classList.contains('collapsed') ? '☰' : '✕';
+    });
+
     // Play/Pause button
     document.getElementById('play-pause').addEventListener('click', () => {
         isPaused = !isPaused;

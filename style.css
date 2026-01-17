@@ -201,17 +201,59 @@ h3 {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Toggle button for mobile */
+#toggle-panel {
+    display: none;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 101;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+    transition: all 0.3s ease;
+}
+
+#toggle-panel:active {
+    transform: scale(0.95);
+}
+
+.info-text.mobile-hidden {
+    display: none;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+    #toggle-panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     #info-panel {
-        max-width: 280px;
+        max-width: calc(100% - 20px);
+        width: calc(100% - 20px);
         padding: 15px;
         top: 10px;
         left: 10px;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        transition: transform 0.3s ease;
+    }
+
+    #info-panel.collapsed {
+        transform: translateX(-110%);
     }
 
     h1 {
         font-size: 18px;
+        margin-bottom: 15px;
     }
 
     .stat-item,
@@ -222,6 +264,18 @@ h3 {
     .btn {
         padding: 10px 15px;
         font-size: 12px;
+    }
+
+    .info-text {
+        display: none;
+    }
+
+    .controls {
+        margin-bottom: 15px;
+    }
+
+    .slider-container {
+        margin-bottom: 15px;
     }
 }
 
