@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System - Earth & Moon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000814;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #canvas {
+            display: block;
+            background: radial-gradient(circle at center, #001d3d 0%, #000814 100%);
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ffd60a;
+            min-width: 250px;
+        }
+
+        .controls h2 {
+            color: #ffd60a;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffc300;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        button {
+            background: #ffd60a;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #ffc300;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffd60a;
+            max-width: 300px;
+        }
+
+        .info h3 {
+            color: #ffd60a;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info p {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #ccc;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffd60a;
+        }
+
+        .legend h3 {
+            color: #ffd60a;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #fff;
+        }
+
+        .moon-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .moon-indicator.active {
+            opacity: 1;
+        }
+
+        .moon-indicator::before {
+            content: '← MOON';
+            position: absolute;
+            color: #ffd60a;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #000;
+            white-space: nowrap;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="controls">
+        <h2>🌍 Solar System Controls</h2>
+
+        <div class="control-group">
+            <label>Animation Speed: <span class="value-display" id="speedValue">1.0x</span></label>
+            <input type="range" id="speed" min="0" max="5" step="0.1" value="1">
+        </div>
+
+        <div class="control-group">
+            <label>Zoom: <span class="value-display" id="zoomValue">1.0x</span></label>
+            <input type="range" id="zoom" min="0.5" max="3" step="0.1" value="1">
+        </div>
+
+        <button id="findMoon">🌙 Find the Moon!</button>
+        <button id="resetView">🔄 Reset View</button>
+        <button id="pausePlay">⏸️ Pause</button>
+    </div>
+
+    <div class="legend">
+        <h3>Objects</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ffd60a; box-shadow: 0 0 20px #ffd60a;"></div>
+            <span>Sun</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #1e90ff;"></div>
+            <span>Earth</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #c0c0c0;"></div>
+            <span>Moon</span>
+        </div>
+    </div>
+
+    <div class="info">
+        <h3>ℹ️ About</h3>
+        <p>
+            This visualization shows Earth orbiting the Sun, with the Moon orbiting Earth.
+            Use the controls to adjust speed and zoom. Click "Find the Moon!" if you can't locate it.
+        </p>
+    </div>
+
+    <div class="moon-indicator" id="moonIndicator"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Simulation parameters
+        let animationSpeed = 1;
+        let zoomLevel = 1;
+        let isPaused = false;
+        let trackMoon = false;
+        let trackMoonTimer = null;
+
+        // Camera offset
+        let cameraX = 0;
+        let cameraY = 0;
+        let targetCameraX = 0;
+        let targetCameraY = 0;
+
+        // Orbital parameters
+        const sun = {
+            x: 0,
+            y: 0,
+            radius: 30,
+            color: '#ffd60a'
+        };
+
+        const earth = {
+            orbitRadius: 250,
+            radius: 12,
+            color: '#1e90ff',
+            angle: 0,
+            speed: 0.01
+        };
+
+        const moon = {
+            orbitRadius: 40,
+            radius: 4,
+            color: '#c0c0c0',
+            angle: 0,
+            speed: 0.05
+        };
+
+        // Stars background
+        const stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * 4000 - 2000,
+                y: Math.random() * 4000 - 2000,
+                radius: Math.random() * 1.5,
+                opacity: Math.random() * 0.5 + 0.5
+            });
+        }
+
+        // Update positions
+        function update(deltaTime) {
+            if (!isPaused) {
+                earth.angle += earth.speed * animationSpeed * deltaTime;
+                moon.angle += moon.speed * animationSpeed * deltaTime;
+            }
+
+            // Smooth camera movement
+            cameraX += (targetCameraX - cameraX) * 0.1;
+            cameraY += (targetCameraY - cameraY) * 0.1;
+        }
+
+        // Draw functions
+        function drawStars() {
+            stars.forEach(star => {
+                ctx.globalAlpha = star.opacity;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(
+                    star.x - cameraX * 0.5,
+                    star.y - cameraY * 0.5,
+                    star.radius,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawOrbit(radius) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawSun() {
+            // Glow
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, sun.radius * 2);
+            gradient.addColorStop(0, 'rgba(255, 214, 10, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(255, 214, 10, 0.3)');
+            gradient.addColorStop(1, 'rgba(255, 214, 10, 0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, sun.radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sun body
+            ctx.fillStyle = sun.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, sun.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawEarth() {
+            const earthX = Math.cos(earth.angle) * earth.orbitRadius;
+            const earthY = Math.sin(earth.angle) * earth.orbitRadius;
+
+            // Earth
+            ctx.fillStyle = earth.color;
+            ctx.strokeStyle = '#0d47a1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earth.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Earth details (continents)
+            ctx.fillStyle = '#2e7d32';
+            ctx.beginPath();
+            ctx.arc(earthX - 4, earthY - 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(earthX + 3, earthY + 3, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            return { x: earthX, y: earthY };
+        }
+
+        function drawMoon(earthPos) {
+            const moonX = earthPos.x + Math.cos(moon.angle) * moon.orbitRadius;
+            const moonY = earthPos.y + Math.sin(moon.angle) * moon.orbitRadius;
+
+            // Moon orbit around Earth
+            ctx.save();
+            ctx.translate(earthPos.x, earthPos.y);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(0, 0, moon.orbitRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            // Moon body
+            ctx.fillStyle = moon.color;
+            ctx.strokeStyle = '#808080';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moon.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Moon craters
+            ctx.fillStyle = '#a0a0a0';
+            ctx.beginPath();
+            ctx.arc(moonX - 1, moonY - 1, 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(moonX + 1, moonY + 0.5, 0.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            return { x: moonX, y: moonY };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Save context and apply transformations
+            ctx.save();
+            ctx.translate(canvas.width / 2 + cameraX, canvas.height / 2 + cameraY);
+            ctx.scale(zoomLevel, zoomLevel);
+
+            // Draw everything
+            drawStars();
+            drawOrbit(earth.orbitRadius);
+            drawSun();
+            const earthPos = drawEarth();
+            const moonPos = drawMoon(earthPos);
+
+            ctx.restore();
+
+            // Update moon indicator position
+            if (trackMoon) {
+                const screenX = canvas.width / 2 + (moonPos.x * zoomLevel) + cameraX;
+                const screenY = canvas.height / 2 + (moonPos.y * zoomLevel) + cameraY;
+                const indicator = document.getElementById('moonIndicator');
+                indicator.style.left = screenX + 'px';
+                indicator.style.top = screenY + 'px';
+            }
+        }
+
+        // Animation loop
+        let lastTime = 0;
+        function animate(currentTime) {
+            const deltaTime = (currentTime - lastTime) / 16.67; // Normalize to 60fps
+            lastTime = currentTime;
+
+            update(deltaTime || 1);
+            draw();
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        // Controls
+        document.getElementById('speed').addEventListener('input', (e) => {
+            animationSpeed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = animationSpeed.toFixed(1) + 'x';
+        });
+
+        document.getElementById('zoom').addEventListener('input', (e) => {
+            zoomLevel = parseFloat(e.target.value);
+            document.getElementById('zoomValue').textContent = zoomLevel.toFixed(1) + 'x';
+        });
+
+        document.getElementById('findMoon').addEventListener('click', () => {
+            // Calculate moon position
+            const earthX = Math.cos(earth.angle) * earth.orbitRadius;
+            const earthY = Math.sin(earth.angle) * earth.orbitRadius;
+            const moonX = earthX + Math.cos(moon.angle) * moon.orbitRadius;
+            const moonY = earthY + Math.sin(moon.angle) * moon.orbitRadius;
+
+            // Center camera on moon
+            targetCameraX = -moonX * zoomLevel;
+            targetCameraY = -moonY * zoomLevel;
+
+            // Show indicator
+            trackMoon = true;
+            document.getElementById('moonIndicator').classList.add('active');
+
+            // Clear existing timer
+            if (trackMoonTimer) clearTimeout(trackMoonTimer);
+
+            // Hide indicator after 3 seconds
+            trackMoonTimer = setTimeout(() => {
+                trackMoon = false;
+                document.getElementById('moonIndicator').classList.remove('active');
+            }, 3000);
+        });
+
+        document.getElementById('resetView').addEventListener('click', () => {
+            targetCameraX = 0;
+            targetCameraY = 0;
+            zoomLevel = 1;
+            document.getElementById('zoom').value = 1;
+            document.getElementById('zoomValue').textContent = '1.0x';
+            trackMoon = false;
+            document.getElementById('moonIndicator').classList.remove('active');
+        });
+
+        document.getElementById('pausePlay').addEventListener('click', (e) => {
+            isPaused = !isPaused;
+            e.target.textContent = isPaused ? '▶️ Play' : '⏸️ Pause';
+        });
+    </script>
+</body>
+</html>
