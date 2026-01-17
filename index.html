@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth-Moon Orbital System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="info-panel">
+        <h1>🌍 Earth-Moon Orbital System</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="label">Simulation Speed:</span>
+                <span id="speed-display">1000x</span>
+            </div>
+            <div class="stat-item">
+                <span class="label">Days Elapsed:</span>
+                <span id="days-elapsed">0.0</span>
+            </div>
+            <div class="stat-item">
+                <span class="label">Moon Phase:</span>
+                <span id="moon-phase">New Moon</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="play-pause" class="btn">⏸ Pause</button>
+            <button id="reset" class="btn">🔄 Reset</button>
+        </div>
+
+        <div class="slider-container">
+            <label for="speed-slider">Animation Speed</label>
+            <input type="range" id="speed-slider" min="1" max="5000" value="1000" step="50">
+            <div class="slider-labels">
+                <span>1x</span>
+                <span>5000x</span>
+            </div>
+        </div>
+
+        <div class="info-text">
+            <h3>Accurate Scale Model</h3>
+            <ul>
+                <li><strong>Earth Diameter:</strong> 12,742 km</li>
+                <li><strong>Moon Diameter:</strong> 3,474 km (27% of Earth)</li>
+                <li><strong>Distance:</strong> 384,400 km (30× Earth diameter)</li>
+                <li><strong>Moon Orbit:</strong> 27.3 days</li>
+                <li><strong>Earth Rotation:</strong> 24 hours</li>
+                <li><strong>Moon Rotation:</strong> 27.3 days (tidally locked)</li>
+            </ul>
+            <p class="note">💡 Use mouse to rotate view, scroll to zoom</p>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
