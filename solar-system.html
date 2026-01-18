@@ -128,12 +128,33 @@
             transform: translateX(-50%);
             display: flex;
             gap: 12px;
-            align-items: center;
+            align-items: flex-end;
             transition: all 0.3s ease;
+            flex-wrap: wrap;
+            max-width: 90vw;
+        }
+
+        .control-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .date-controls {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            min-width: 200px;
         }
 
         .controls.minimized {
             gap: 0;
+        }
+
+        .controls.minimized .control-section {
+            display: none;
         }
 
         .controls.minimized button:not(.minimize-btn) {
@@ -274,10 +295,18 @@
     </div>
 
     <div class="ui-panel controls" id="controlsPanel">
-        <button id="pauseBtn">⏸️ Pause</button>
-        <button id="speed1x" class="active">1×</button>
-        <button id="speed10x">10×</button>
-        <button id="speed100x">100×</button>
+        <div class="control-section">
+            <button id="pauseBtn">⏸️ Pause</button>
+            <button id="speed1x" class="active">1×</button>
+            <button id="speed10x">10×</button>
+            <button id="speed100x">100×</button>
+        </div>
+        <div class="control-section date-controls">
+            <label for="dateInput" style="font-size: 11px; color: #aaa; display: block; margin-bottom: 4px;">Date & Time (UTC)</label>
+            <input type="datetime-local" id="dateInput" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.6); border: 1px solid #555; border-radius: 4px; color: white; font-size: 12px;">
+            <button id="setDateBtn" style="margin-top: 6px; width: 100%;">Set Date</button>
+            <button id="resetDateBtn" style="margin-top: 4px; width: 100%; font-size: 11px; padding: 4px;">Now</button>
+        </div>
         <button class="minimize-btn" id="minimizeControls">−</button>
     </div>
 
@@ -327,6 +356,7 @@
         // Planet data with real NASA orbital parameters
         // Distances scaled for visualization (actual ratios preserved)
         // Orbital elements from NASA JPL Horizons
+        // Epoch: J2000.0 (January 1, 2000, 12:00 TT)
         const PLANETS = {
             mercury: {
                 name: 'Mercury',
@@ -336,7 +366,8 @@
                 inclination: 7.005,       // degrees
                 longitudeAscending: 48.331, // Ω degrees
                 argumentPeriapsis: 29.124,  // ω degrees
-                orbit: 88,                // days
+                meanAnomalyEpoch: 174.796,  // M0 at J2000.0 (degrees)
+                orbit: 87.969,            // Orbital period in days
                 rotation: 58.6,
                 color: '#8C7853',
                 desc: 'The smallest planet and closest to the Sun.'
@@ -349,7 +380,8 @@
                 inclination: 3.395,
                 longitudeAscending: 76.680,
                 argumentPeriapsis: 54.884,
-                orbit: 225,
+                meanAnomalyEpoch: 50.115,
+                orbit: 224.701,
                 rotation: 243,
                 color: '#FFC649',
                 desc: 'Earth\'s "sister planet" with a thick toxic atmosphere.'
@@ -362,7 +394,8 @@
                 inclination: 0.000,       // Reference plane
                 longitudeAscending: 0.0,
                 argumentPeriapsis: 114.208,
-                orbit: 365,
+                meanAnomalyEpoch: 357.529,
+                orbit: 365.256,           // Sidereal year
                 rotation: 1,
                 color: '#4169E1',
                 desc: 'Our home planet with liquid water and life.'
@@ -375,7 +408,8 @@
                 inclination: 1.850,
                 longitudeAscending: 49.558,
                 argumentPeriapsis: 286.502,
-                orbit: 687,
+                meanAnomalyEpoch: 19.373,
+                orbit: 686.980,
                 rotation: 1.03,
                 color: '#CD5C5C',
                 desc: 'The Red Planet with the largest volcano in the solar system.'
@@ -388,7 +422,8 @@
                 inclination: 1.303,
                 longitudeAscending: 100.464,
                 argumentPeriapsis: 273.867,
-                orbit: 4333,
+                meanAnomalyEpoch: 20.020,
+                orbit: 4332.589,
                 rotation: 0.41,
                 color: '#DAA520',
                 desc: 'The largest planet, a gas giant with the Great Red Spot.'
@@ -401,7 +436,8 @@
                 inclination: 2.485,
                 longitudeAscending: 113.665,
                 argumentPeriapsis: 339.392,
-                orbit: 10759,
+                meanAnomalyEpoch: 317.021,
+                orbit: 10759.22,
                 rotation: 0.45,
                 color: '#F4E3B5',
                 desc: 'The ringed planet with spectacular ice and rock rings.'
@@ -414,7 +450,8 @@
                 inclination: 0.773,
                 longitudeAscending: 74.006,
                 argumentPeriapsis: 96.998,
-                orbit: 30687,
+                meanAnomalyEpoch: 141.050,
+                orbit: 30688.5,
                 rotation: 0.72,
                 color: '#4FD0E7',
                 desc: 'The ice giant that rotates on its side.'
@@ -427,7 +464,8 @@
                 inclination: 1.770,
                 longitudeAscending: 131.784,
                 argumentPeriapsis: 276.336,
-                orbit: 60190,
+                meanAnomalyEpoch: 256.225,
+                orbit: 60182.0,
                 rotation: 0.67,
                 color: '#4169E1',
                 desc: 'The farthest planet with the fastest winds.'
@@ -454,19 +492,28 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
-        // Stars
+        // Stars (infinitely distant - no parallax)
         const starsGeometry = new THREE.BufferGeometry();
-        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+        const starsMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 2,
+            sizeAttenuation: false  // Stars don't get smaller with distance
+        });
         const starsVertices = [];
-        for (let i = 0; i < 1000; i++) {
+        // Create stars on a large sphere that will follow the camera
+        for (let i = 0; i < 2000; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const radius = 10000;  // Very far away
             starsVertices.push(
-                (Math.random() - 0.5) * 500,
-                (Math.random() - 0.5) * 500,
-                (Math.random() - 0.5) * 500
+                radius * Math.sin(phi) * Math.cos(theta),
+                radius * Math.sin(phi) * Math.sin(theta),
+                radius * Math.cos(phi)
             );
         }
         starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-        scene.add(new THREE.Points(starsGeometry, starsMaterial));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
 
         // Sun
         const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
@@ -487,6 +534,31 @@
         });
         const glow = new THREE.Mesh(glowGeometry, glowMaterial);
         scene.add(glow);
+
+        // Date/Time functionality for accurate planet positions
+        // J2000.0 epoch: January 1, 2000, 12:00 TT (approximately 11:58:55.816 UTC)
+        const J2000 = new Date('2000-01-01T12:00:00Z');
+        const J2000_JD = 2451545.0;  // Julian Date of J2000.0
+
+        // Convert JavaScript Date to Julian Date
+        function dateToJulianDate(date) {
+            return (date.getTime() / 86400000) + 2440587.5;
+        }
+
+        // Calculate mean anomaly at a given date
+        function getMeanAnomalyAtDate(planet, date) {
+            const jd = dateToJulianDate(date);
+            const daysSinceEpoch = jd - J2000_JD;
+
+            // Mean motion (degrees per day)
+            const meanMotion = 360.0 / planet.orbit;
+
+            // Mean anomaly = M0 + n * t (where n is mean motion, t is time since epoch)
+            const meanAnomaly = planet.meanAnomalyEpoch + (meanMotion * daysSinceEpoch);
+
+            // Normalize to 0-360 degrees
+            return ((meanAnomaly % 360) + 360) % 360;
+        }
 
         // Helper function to calculate position on elliptical orbit
         function getOrbitalPosition(planet, meanAnomaly) {
@@ -575,7 +647,16 @@
                 roughness: 0.7
             });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.userData = { id, angle: Math.random() * Math.PI * 2 };
+
+            // Initialize planet at its actual position for current date
+            const initialMeanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
+            const initialAngle = initialMeanAnomaly * Math.PI / 180;
+            mesh.userData = { id, angle: initialAngle };
+
+            // Set initial position
+            const initialPos = getOrbitalPosition(planet, initialAngle);
+            mesh.position.set(initialPos.x, initialPos.y, initialPos.z);
+
             scene.add(mesh);
             planetMeshes[id] = mesh;
 
@@ -598,6 +679,11 @@
         let isPaused = false;
         let timeSpeed = 1;
         let selectedPlanet = null;
+
+        // Date/Time control
+        let useSpecificDate = false;
+        let currentDate = new Date();  // Simulation date
+        let simulationStartTime = Date.now();  // Real time when simulation started
 
         let isDragging = false;
         let previousMouse = { x: 0, y: 0 };
@@ -736,6 +822,57 @@
             document.getElementById('speed100x').classList.add('active');
         });
 
+        // Date/Time controls
+        const dateInput = document.getElementById('dateInput');
+
+        // Initialize date input to current time
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        dateInput.value = formatDateForInput(currentDate);
+
+        document.getElementById('setDateBtn').addEventListener('click', () => {
+            const selectedDate = new Date(dateInput.value);
+            if (!isNaN(selectedDate.getTime())) {
+                useSpecificDate = true;
+                currentDate = selectedDate;
+                simulationStartTime = Date.now();
+
+                // Update all planet positions immediately
+                Object.keys(planetMeshes).forEach(id => {
+                    const planet = PLANETS[id];
+                    const mesh = planetMeshes[id];
+                    const meanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
+                    mesh.userData.angle = meanAnomaly * Math.PI / 180;
+                    const pos = getOrbitalPosition(planet, mesh.userData.angle);
+                    mesh.position.set(pos.x, pos.y, pos.z);
+                });
+            }
+        });
+
+        document.getElementById('resetDateBtn').addEventListener('click', () => {
+            useSpecificDate = false;
+            currentDate = new Date();
+            simulationStartTime = Date.now();
+            dateInput.value = formatDateForInput(currentDate);
+
+            // Reset all planet positions
+            Object.keys(planetMeshes).forEach(id => {
+                const planet = PLANETS[id];
+                const mesh = planetMeshes[id];
+                const meanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
+                mesh.userData.angle = meanAnomaly * Math.PI / 180;
+                const pos = getOrbitalPosition(planet, mesh.userData.angle);
+                mesh.position.set(pos.x, pos.y, pos.z);
+            });
+        });
+
         // Minimize controls
         document.getElementById('minimizePlanets').addEventListener('click', (e) => {
             const panel = document.getElementById('planetListPanel');
@@ -764,12 +901,22 @@
 
             // Update planets
             if (!isPaused) {
+                // Advance simulation time
+                const frameTimeAdvance = 0.01 * timeSpeed * 86400000;  // Convert days to milliseconds
+                currentDate = new Date(currentDate.getTime() + frameTimeAdvance);
+
+                // Update date input display if using specific date mode
+                if (useSpecificDate && Math.random() < 0.1) {  // Update occasionally to avoid performance hit
+                    dateInput.value = formatDateForInput(currentDate);
+                }
+
                 Object.keys(planetMeshes).forEach(id => {
                     const planet = PLANETS[id];
                     const mesh = planetMeshes[id];
 
-                    // Update mean anomaly (orbital angle)
-                    mesh.userData.angle += (Math.PI * 2 / planet.orbit) * 0.01 * timeSpeed;
+                    // Calculate mean anomaly from current simulation date
+                    const meanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
+                    mesh.userData.angle = meanAnomaly * Math.PI / 180;
 
                     // Calculate position on elliptical orbit
                     const pos = getOrbitalPosition(planet, mesh.userData.angle);
@@ -804,6 +951,9 @@
             } else {
                 camera.lookAt(0, 0, 0);
             }
+
+            // Keep stars centered on camera (infinitely distant - no parallax)
+            stars.position.copy(camera.position);
 
             renderer.render(scene, camera);
         }
