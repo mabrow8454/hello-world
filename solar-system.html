@@ -38,14 +38,53 @@
             top: 20px;
             left: 20px;
             max-width: 280px;
+            transition: all 0.3s ease;
+        }
+
+        .planet-list.minimized {
+            max-width: 60px;
+            padding: 12px;
+        }
+
+        .planet-list.minimized .planet-items,
+        .planet-list.minimized .planet-list-title {
+            display: none;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .planet-list h2 {
             font-size: 18px;
-            margin-bottom: 12px;
+            margin: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .minimize-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
         }
 
         .planet-item {
@@ -90,6 +129,15 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .controls.minimized {
+            gap: 0;
+        }
+
+        .controls.minimized button:not(.minimize-btn) {
+            display: none;
         }
 
         button {
@@ -164,19 +212,47 @@
 
         @media (max-width: 768px) {
             .planet-list {
-                bottom: 20px;
+                bottom: 80px;
                 top: auto;
                 left: 10px;
                 right: 10px;
                 max-width: none;
             }
 
+            .planet-list.minimized {
+                max-width: 60px;
+                left: 10px;
+                right: auto;
+            }
+
             .info-panel {
+                top: 20px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+
+            .info-panel.minimized {
+                max-width: 60px;
+                right: auto;
+            }
+
+            .info-panel.minimized > *:not(.panel-header) {
                 display: none;
             }
 
+            .controls {
+                bottom: 10px;
+            }
+
+            .controls.minimized {
+                left: auto;
+                right: 10px;
+                transform: none;
+            }
+
             .hint {
-                bottom: 140px;
+                display: none;
             }
         }
     </style>
@@ -184,20 +260,27 @@
 <body>
     <div id="container"></div>
 
-    <div class="ui-panel planet-list">
-        <h2>🪐 Solar System</h2>
-        <div id="planetList"></div>
+    <div class="ui-panel planet-list" id="planetListPanel">
+        <div class="panel-header">
+            <h2 class="planet-list-title">🪐 Solar System</h2>
+            <button class="minimize-btn" id="minimizePlanets">−</button>
+        </div>
+        <div class="planet-items" id="planetList"></div>
     </div>
 
-    <div class="ui-panel controls">
+    <div class="ui-panel controls" id="controlsPanel">
         <button id="pauseBtn">⏸️ Pause</button>
         <button id="speed1x" class="active">1×</button>
         <button id="speed10x">10×</button>
         <button id="speed100x">100×</button>
+        <button class="minimize-btn" id="minimizeControls">−</button>
     </div>
 
     <div class="ui-panel info-panel" id="infoPanel" style="display: none;">
-        <h3 id="planetTitle">Earth</h3>
+        <div class="panel-header">
+            <h3 id="planetTitle">Earth</h3>
+            <button class="minimize-btn" id="minimizeInfo">−</button>
+        </div>
         <p id="planetDesc"></p>
         <div id="planetStats"></div>
     </div>
@@ -468,6 +551,28 @@
             timeSpeed = 100;
             document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
             document.getElementById('speed100x').classList.add('active');
+        });
+
+        // Minimize controls
+        document.getElementById('minimizePlanets').addEventListener('click', (e) => {
+            const panel = document.getElementById('planetListPanel');
+            const btn = e.target;
+            panel.classList.toggle('minimized');
+            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+        });
+
+        document.getElementById('minimizeControls').addEventListener('click', (e) => {
+            const panel = document.getElementById('controlsPanel');
+            const btn = e.target;
+            panel.classList.toggle('minimized');
+            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+        });
+
+        document.getElementById('minimizeInfo').addEventListener('click', (e) => {
+            const panel = document.getElementById('infoPanel');
+            const btn = e.target;
+            panel.classList.toggle('minimized');
+            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
         });
 
         // Animation
