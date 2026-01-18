@@ -240,16 +240,19 @@
         let isPanning = false;
 
         // Orbital parameters - Earth at center
+        // Scale: Real Earth radius = 6,371km, Moon = 1,737km (27.3% of Earth)
+        // Real distance = 384,400km (60x Earth radius)
+        // We use 10x compression for visibility (600px = 60x radius / 10)
         const earth = {
             x: 0,
             y: 0,
-            radius: 50,
+            radius: 60,
             color: '#1e90ff'
         };
 
         const moon = {
-            orbitRadius: 150,
-            radius: 15,
+            orbitRadius: 600, // More accurate distance (10x compression from real 60x)
+            radius: 16, // 27% of Earth's radius
             color: '#c0c0c0',
             angle: 0,
             speed: 0.02
@@ -297,40 +300,98 @@
 
         function drawEarth() {
             // Moon orbit around Earth
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
             ctx.beginPath();
             ctx.arc(0, 0, moon.orbitRadius, 0, Math.PI * 2);
             ctx.stroke();
+            ctx.setLineDash([]);
 
-            // Earth glow
-            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, earth.radius * 1.3);
-            gradient.addColorStop(0, 'rgba(30, 144, 255, 0.3)');
-            gradient.addColorStop(1, 'rgba(30, 144, 255, 0)');
-            ctx.fillStyle = gradient;
+            // Atmospheric glow
+            const atmoGlow = ctx.createRadialGradient(0, 0, earth.radius * 0.8, 0, 0, earth.radius * 1.5);
+            atmoGlow.addColorStop(0, 'rgba(100, 180, 255, 0)');
+            atmoGlow.addColorStop(0.7, 'rgba(100, 180, 255, 0.3)');
+            atmoGlow.addColorStop(1, 'rgba(100, 180, 255, 0)');
+            ctx.fillStyle = atmoGlow;
             ctx.beginPath();
-            ctx.arc(0, 0, earth.radius * 1.3, 0, Math.PI * 2);
+            ctx.arc(0, 0, earth.radius * 1.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Earth body
-            ctx.fillStyle = earth.color;
-            ctx.strokeStyle = '#0d47a1';
-            ctx.lineWidth = 3;
+            // 3D sphere gradient (light from top-left)
+            const lightX = -earth.radius * 0.3;
+            const lightY = -earth.radius * 0.3;
+            const sphereGradient = ctx.createRadialGradient(
+                lightX, lightY, earth.radius * 0.2,
+                0, 0, earth.radius * 1.4
+            );
+            sphereGradient.addColorStop(0, '#87CEEB'); // Light blue (sunlit)
+            sphereGradient.addColorStop(0.3, '#1e90ff'); // Ocean blue
+            sphereGradient.addColorStop(0.7, '#0d47a1'); // Deep ocean
+            sphereGradient.addColorStop(1, '#001f3f'); // Dark edge
+
+            ctx.fillStyle = sphereGradient;
             ctx.beginPath();
             ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
             ctx.fill();
-            ctx.stroke();
 
-            // Earth details (continents)
-            ctx.fillStyle = '#2e7d32';
+            // Add continents with 3D shading
+            ctx.save();
+            ctx.globalAlpha = 0.8;
+
+            // Continent 1 (North America-ish)
+            const continent1Gradient = ctx.createRadialGradient(-20, -15, 5, -20, -15, 15);
+            continent1Gradient.addColorStop(0, '#3d8c40');
+            continent1Gradient.addColorStop(0.6, '#2e7d32');
+            continent1Gradient.addColorStop(1, '#1b5e20');
+            ctx.fillStyle = continent1Gradient;
             ctx.beginPath();
-            ctx.arc(-15, -10, 12, 0, Math.PI * 2);
+            ctx.arc(-20, -15, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Continent 2 (Africa-ish)
+            const continent2Gradient = ctx.createRadialGradient(18, 8, 4, 18, 8, 12);
+            continent2Gradient.addColorStop(0, '#4a9d4e');
+            continent2Gradient.addColorStop(0.6, '#357a38');
+            continent2Gradient.addColorStop(1, '#1e4620');
+            ctx.fillStyle = continent2Gradient;
+            ctx.beginPath();
+            ctx.arc(18, 8, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Continent 3 (Australia-ish)
+            const continent3Gradient = ctx.createRadialGradient(8, 30, 3, 8, 30, 8);
+            continent3Gradient.addColorStop(0, '#4a9d4e');
+            continent3Gradient.addColorStop(0.6, '#357a38');
+            continent3Gradient.addColorStop(1, '#1e4620');
+            ctx.fillStyle = continent3Gradient;
+            ctx.beginPath();
+            ctx.arc(8, 30, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cloud layer
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-25, -5, 8, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(15, 15, 10, 0, Math.PI * 2);
+            ctx.arc(12, -20, 6, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(-5, 20, 8, 0, Math.PI * 2);
+            ctx.arc(25, 15, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Sphere edge shadow for depth
+            const edgeShadow = ctx.createRadialGradient(0, 0, earth.radius * 0.85, 0, 0, earth.radius);
+            edgeShadow.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            edgeShadow.addColorStop(0.95, 'rgba(0, 0, 0, 0)');
+            edgeShadow.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = edgeShadow;
+            ctx.beginPath();
+            ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -338,35 +399,111 @@
             const moonX = Math.cos(moon.angle) * moon.orbitRadius;
             const moonY = Math.sin(moon.angle) * moon.orbitRadius;
 
-            // Moon glow
-            const gradient = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moon.radius * 1.5);
-            gradient.addColorStop(0, 'rgba(192, 192, 192, 0.2)');
-            gradient.addColorStop(1, 'rgba(192, 192, 192, 0)');
-            ctx.fillStyle = gradient;
+            ctx.save();
+            ctx.translate(moonX, moonY);
+
+            // Subtle glow
+            const glow = ctx.createRadialGradient(0, 0, moon.radius * 0.8, 0, 0, moon.radius * 1.3);
+            glow.addColorStop(0, 'rgba(220, 220, 220, 0.1)');
+            glow.addColorStop(1, 'rgba(220, 220, 220, 0)');
+            ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(moonX, moonY, moon.radius * 1.5, 0, Math.PI * 2);
+            ctx.arc(0, 0, moon.radius * 1.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Moon body
-            ctx.fillStyle = moon.color;
-            ctx.strokeStyle = '#909090';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(moonX, moonY, moon.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
+            // 3D sphere gradient (light from top-left, same as Earth)
+            const lightX = -moon.radius * 0.4;
+            const lightY = -moon.radius * 0.4;
+            const sphereGradient = ctx.createRadialGradient(
+                lightX, lightY, moon.radius * 0.1,
+                0, 0, moon.radius * 1.2
+            );
+            sphereGradient.addColorStop(0, '#e8e8e8'); // Bright sunlit surface
+            sphereGradient.addColorStop(0.3, '#c0c0c0'); // Mid-tone
+            sphereGradient.addColorStop(0.7, '#909090'); // Darker areas
+            sphereGradient.addColorStop(1, '#505050'); // Dark edge
 
-            // Moon craters
-            ctx.fillStyle = '#a0a0a0';
+            ctx.fillStyle = sphereGradient;
             ctx.beginPath();
-            ctx.arc(moonX - 4, moonY - 3, 3, 0, Math.PI * 2);
+            ctx.arc(0, 0, moon.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Add craters with depth
+            ctx.globalAlpha = 0.6;
+
+            // Large crater 1
+            const crater1 = ctx.createRadialGradient(-4, -3, 0.5, -4, -3, 3.5);
+            crater1.addColorStop(0, '#606060');
+            crater1.addColorStop(0.7, '#808080');
+            crater1.addColorStop(1, '#a0a0a0');
+            ctx.fillStyle = crater1;
+            ctx.beginPath();
+            ctx.arc(-4, -3, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crater rim highlight
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = '#d0d0d0';
+            ctx.beginPath();
+            ctx.arc(-5, -4, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Large crater 2
+            ctx.globalAlpha = 0.6;
+            const crater2 = ctx.createRadialGradient(5, 2, 0.3, 5, 2, 2.8);
+            crater2.addColorStop(0, '#707070');
+            crater2.addColorStop(0.7, '#909090');
+            crater2.addColorStop(1, '#a8a8a8');
+            ctx.fillStyle = crater2;
+            ctx.beginPath();
+            ctx.arc(5, 2, 2.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Small crater 3
+            const crater3 = ctx.createRadialGradient(-1, 6, 0.2, -1, 6, 2);
+            crater3.addColorStop(0, '#606060');
+            crater3.addColorStop(0.7, '#858585');
+            crater3.addColorStop(1, '#a0a0a0');
+            ctx.fillStyle = crater3;
+            ctx.beginPath();
+            ctx.arc(-1, 6, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Small crater 4
+            const crater4 = ctx.createRadialGradient(3, -5, 0.2, 3, -5, 1.5);
+            crater4.addColorStop(0, '#656565');
+            crater4.addColorStop(0.7, '#888888');
+            crater4.addColorStop(1, '#a5a5a5');
+            ctx.fillStyle = crater4;
+            ctx.beginPath();
+            ctx.arc(3, -5, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tiny craters for detail
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = '#7a7a7a';
+            ctx.beginPath();
+            ctx.arc(-7, 1, 0.8, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(moonX + 3, moonY + 2, 2.5, 0, Math.PI * 2);
+            ctx.arc(7, -2, 0.6, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(moonX - 1, moonY + 5, 2, 0, Math.PI * 2);
+            ctx.arc(2, 7, 0.7, 0, Math.PI * 2);
             ctx.fill();
+
+            // Sphere edge shadow for depth
+            ctx.globalAlpha = 1;
+            const edgeShadow = ctx.createRadialGradient(0, 0, moon.radius * 0.85, 0, 0, moon.radius);
+            edgeShadow.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            edgeShadow.addColorStop(0.9, 'rgba(0, 0, 0, 0)');
+            edgeShadow.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+            ctx.fillStyle = edgeShadow;
+            ctx.beginPath();
+            ctx.arc(0, 0, moon.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
 
             return { x: moonX, y: moonY };
         }
