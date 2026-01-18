@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Earth & Moon System</title>
+    <title>Earth & Moon System - 3D</title>
     <style>
         * {
             margin: 0;
@@ -13,14 +13,14 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000814;
+            background: #000;
             color: #fff;
             overflow: hidden;
         }
 
-        #canvas {
-            display: block;
-            background: radial-gradient(circle at center, #001d3d 0%, #000814 100%);
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
         }
 
         .controls {
@@ -34,6 +34,7 @@
             min-width: 200px;
             max-width: 250px;
             transition: all 0.3s ease;
+            z-index: 100;
         }
 
         .controls.minimized {
@@ -140,7 +141,7 @@
             font-weight: bold;
             box-shadow: 0 4px 15px rgba(255, 214, 10, 0.4);
             transition: all 0.3s;
-            z-index: 10;
+            z-index: 100;
         }
 
         .find-moon-btn:hover {
@@ -153,39 +154,54 @@
             transform: translateX(-50%) scale(0.95);
         }
 
-        .moon-indicator {
+        .info-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid #ffd60a;
+            text-align: center;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            z-index: 50;
         }
 
-        .moon-indicator.active {
+        .info-overlay.visible {
             opacity: 1;
         }
 
-        .moon-indicator::before {
-            content: '← MOON';
-            position: absolute;
+        .info-overlay h3 {
             color: #ffd60a;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 0 0 10px #000;
-            white-space: nowrap;
-            animation: pulse 1s infinite;
+            margin-bottom: 10px;
+            font-size: 20px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .info-overlay p {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #ffd60a;
+            opacity: 0.8;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="canvas-container"></div>
 
     <div class="controls" id="controls">
         <div class="controls-header">
@@ -198,408 +214,270 @@
                 <input type="range" id="speed" min="0" max="5" step="0.1" value="1">
             </div>
 
-            <button id="resetView">🔄 Reset</button>
+            <button id="resetView">🔄 Reset View</button>
             <button id="pausePlay">⏸️ Pause</button>
         </div>
     </div>
 
     <button class="find-moon-btn" id="findMoon">🌙 Find the Moon!</button>
 
-    <div class="moon-indicator" id="moonIndicator"></div>
+    <div class="hint">Drag to rotate • Pinch/Scroll to zoom</div>
+
+    <div class="info-overlay" id="infoOverlay">
+        <h3>🌙 Moon Found!</h3>
+        <p>Drag to explore from different angles</p>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-        // Set canvas size
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Space background
+        scene.background = new THREE.Color(0x000814);
+
+        // Add stars
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+        const starsVertices = [];
+        for (let i = 0; i < 1000; i++) {
+            const x = (Math.random() - 0.5) * 4000;
+            const y = (Math.random() - 0.5) * 4000;
+            const z = (Math.random() - 0.5) * 4000;
+            starsVertices.push(x, y, z);
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
 
-        // Simulation parameters
+        // Lighting
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2);
+        sunLight.position.set(-1000, 500, -500);
+        scene.add(sunLight);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        // Accurate scale: Earth radius = 60 units, Moon radius = 16 units (27% of Earth)
+        // Distance = 600 units (10x compression from real 60x radius)
+
+        // Create Earth
+        const earthGeometry = new THREE.SphereGeometry(60, 64, 64);
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            color: 0x1e90ff,
+            emissive: 0x001122,
+            shininess: 10,
+            specular: 0x333333
+        });
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+
+        // Add Earth continents (simple approximation with spheres)
+        const continentMaterial = new THREE.MeshPhongMaterial({
+            color: 0x2e7d32,
+            emissive: 0x001100
+        });
+
+        // Continent group
+        const continents = new THREE.Group();
+
+        // North America-ish
+        const continent1 = new THREE.Mesh(
+            new THREE.SphereGeometry(20, 32, 32),
+            continentMaterial
+        );
+        continent1.position.set(-20, 20, 50);
+        continents.add(continent1);
+
+        // Africa-ish
+        const continent2 = new THREE.Mesh(
+            new THREE.SphereGeometry(18, 32, 32),
+            continentMaterial
+        );
+        continent2.position.set(25, -10, 52);
+        continents.add(continent2);
+
+        // Asia-ish
+        const continent3 = new THREE.Mesh(
+            new THREE.SphereGeometry(22, 32, 32),
+            continentMaterial
+        );
+        continent3.position.set(15, 30, 48);
+        continents.add(continent3);
+
+        earth.add(continents);
+
+        // Add clouds
+        const cloudsGeometry = new THREE.SphereGeometry(61, 64, 64);
+        const cloudsMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3,
+            shininess: 0
+        });
+        const clouds = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+        earth.add(clouds);
+
+        // Create Moon
+        const moonGeometry = new THREE.SphereGeometry(16, 32, 32);
+        const moonMaterial = new THREE.MeshPhongMaterial({
+            color: 0xc0c0c0,
+            emissive: 0x111111,
+            shininess: 5
+        });
+        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+        moon.position.set(600, 0, 0);
+        scene.add(moon);
+
+        // Add moon craters (simple bumps)
+        const craterMaterial = new THREE.MeshPhongMaterial({
+            color: 0x808080,
+            emissive: 0x050505
+        });
+
+        const crater1 = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), craterMaterial);
+        crater1.position.set(0, 5, 14);
+        moon.add(crater1);
+
+        const crater2 = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), craterMaterial);
+        crater2.position.set(8, -3, 12);
+        moon.add(crater2);
+
+        const crater3 = new THREE.Mesh(new THREE.SphereGeometry(2.5, 16, 16), craterMaterial);
+        crater3.position.set(-6, 7, 13);
+        moon.add(crater3);
+
+        // Moon orbit visualization (optional dashed line)
+        const orbitCurve = new THREE.EllipseCurve(0, 0, 600, 600, 0, 2 * Math.PI, false, 0);
+        const orbitPoints = orbitCurve.getPoints(100);
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(
+            orbitPoints.map(p => new THREE.Vector3(p.x, 0, p.y))
+        );
+        const orbitMaterial = new THREE.LineDashedMaterial({
+            color: 0xffffff,
+            dashSize: 10,
+            gapSize: 10,
+            transparent: true,
+            opacity: 0.3
+        });
+        const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+        orbit.computeLineDistances();
+        scene.add(orbit);
+
+        // Camera setup
+        camera.position.set(0, 200, 400);
+        camera.lookAt(0, 0, 0);
+
+        // Animation variables
         let animationSpeed = 1;
-        let zoomLevel = 1;
         let isPaused = false;
-        let trackMoon = false;
-        let trackMoonTimer = null;
+        let moonAngle = 0;
 
-        // Camera offset
-        let cameraX = 0;
-        let cameraY = 0;
-        let targetCameraX = 0;
-        let targetCameraY = 0;
+        // Camera controls variables
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraAngleX = 0;
+        let cameraAngleY = Math.atan2(200, 400);
+        let cameraDistance = 500;
+        let targetCameraDistance = 500;
 
-        // Touch gesture tracking
+        // Touch controls
         let touchStartDistance = 0;
-        let touchStartZoom = 1;
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let isPanning = false;
+        let touchStartCameraDistance = 500;
 
-        // Orbital parameters - Earth at center
-        // Scale: Real Earth radius = 6,371km, Moon = 1,737km (27.3% of Earth)
-        // Real distance = 384,400km (60x Earth radius)
-        // We use 10x compression for visibility (600px = 60x radius / 10)
-        const earth = {
-            x: 0,
-            y: 0,
-            radius: 60,
-            color: '#1e90ff'
-        };
-
-        const moon = {
-            orbitRadius: 600, // More accurate distance (10x compression from real 60x)
-            radius: 16, // 27% of Earth's radius
-            color: '#c0c0c0',
-            angle: 0,
-            speed: 0.02
-        };
-
-        // Stars background
-        const stars = [];
-        for (let i = 0; i < 200; i++) {
-            stars.push({
-                x: Math.random() * 4000 - 2000,
-                y: Math.random() * 4000 - 2000,
-                radius: Math.random() * 1.5,
-                opacity: Math.random() * 0.5 + 0.5
-            });
-        }
-
-        // Update positions
-        function update(deltaTime) {
-            if (!isPaused) {
-                moon.angle += moon.speed * animationSpeed * deltaTime;
-            }
-
-            // Smooth camera movement
-            cameraX += (targetCameraX - cameraX) * 0.1;
-            cameraY += (targetCameraY - cameraY) * 0.1;
-        }
-
-        // Draw functions
-        function drawStars() {
-            stars.forEach(star => {
-                ctx.globalAlpha = star.opacity;
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(
-                    star.x - cameraX * 0.5,
-                    star.y - cameraY * 0.5,
-                    star.radius,
-                    0,
-                    Math.PI * 2
-                );
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1;
-        }
-
-        function drawEarth() {
-            // Moon orbit around Earth
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.arc(0, 0, moon.orbitRadius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Atmospheric glow
-            const atmoGlow = ctx.createRadialGradient(0, 0, earth.radius * 0.8, 0, 0, earth.radius * 1.5);
-            atmoGlow.addColorStop(0, 'rgba(100, 180, 255, 0)');
-            atmoGlow.addColorStop(0.7, 'rgba(100, 180, 255, 0.3)');
-            atmoGlow.addColorStop(1, 'rgba(100, 180, 255, 0)');
-            ctx.fillStyle = atmoGlow;
-            ctx.beginPath();
-            ctx.arc(0, 0, earth.radius * 1.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3D sphere gradient (light from top-left)
-            const lightX = -earth.radius * 0.3;
-            const lightY = -earth.radius * 0.3;
-            const sphereGradient = ctx.createRadialGradient(
-                lightX, lightY, earth.radius * 0.2,
-                0, 0, earth.radius * 1.4
-            );
-            sphereGradient.addColorStop(0, '#87CEEB'); // Light blue (sunlit)
-            sphereGradient.addColorStop(0.3, '#1e90ff'); // Ocean blue
-            sphereGradient.addColorStop(0.7, '#0d47a1'); // Deep ocean
-            sphereGradient.addColorStop(1, '#001f3f'); // Dark edge
-
-            ctx.fillStyle = sphereGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Add continents with 3D shading
-            ctx.save();
-            ctx.globalAlpha = 0.8;
-
-            // Continent 1 (North America-ish)
-            const continent1Gradient = ctx.createRadialGradient(-20, -15, 5, -20, -15, 15);
-            continent1Gradient.addColorStop(0, '#3d8c40');
-            continent1Gradient.addColorStop(0.6, '#2e7d32');
-            continent1Gradient.addColorStop(1, '#1b5e20');
-            ctx.fillStyle = continent1Gradient;
-            ctx.beginPath();
-            ctx.arc(-20, -15, 15, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Continent 2 (Africa-ish)
-            const continent2Gradient = ctx.createRadialGradient(18, 8, 4, 18, 8, 12);
-            continent2Gradient.addColorStop(0, '#4a9d4e');
-            continent2Gradient.addColorStop(0.6, '#357a38');
-            continent2Gradient.addColorStop(1, '#1e4620');
-            ctx.fillStyle = continent2Gradient;
-            ctx.beginPath();
-            ctx.arc(18, 8, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Continent 3 (Australia-ish)
-            const continent3Gradient = ctx.createRadialGradient(8, 30, 3, 8, 30, 8);
-            continent3Gradient.addColorStop(0, '#4a9d4e');
-            continent3Gradient.addColorStop(0.6, '#357a38');
-            continent3Gradient.addColorStop(1, '#1e4620');
-            ctx.fillStyle = continent3Gradient;
-            ctx.beginPath();
-            ctx.arc(8, 30, 8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Cloud layer
-            ctx.globalAlpha = 0.4;
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(-25, -5, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(12, -20, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(25, 15, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-
-            // Sphere edge shadow for depth
-            const edgeShadow = ctx.createRadialGradient(0, 0, earth.radius * 0.85, 0, 0, earth.radius);
-            edgeShadow.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            edgeShadow.addColorStop(0.95, 'rgba(0, 0, 0, 0)');
-            edgeShadow.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-            ctx.fillStyle = edgeShadow;
-            ctx.beginPath();
-            ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function drawMoon() {
-            const moonX = Math.cos(moon.angle) * moon.orbitRadius;
-            const moonY = Math.sin(moon.angle) * moon.orbitRadius;
-
-            ctx.save();
-            ctx.translate(moonX, moonY);
-
-            // Subtle glow
-            const glow = ctx.createRadialGradient(0, 0, moon.radius * 0.8, 0, 0, moon.radius * 1.3);
-            glow.addColorStop(0, 'rgba(220, 220, 220, 0.1)');
-            glow.addColorStop(1, 'rgba(220, 220, 220, 0)');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(0, 0, moon.radius * 1.3, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3D sphere gradient (light from top-left, same as Earth)
-            const lightX = -moon.radius * 0.4;
-            const lightY = -moon.radius * 0.4;
-            const sphereGradient = ctx.createRadialGradient(
-                lightX, lightY, moon.radius * 0.1,
-                0, 0, moon.radius * 1.2
-            );
-            sphereGradient.addColorStop(0, '#e8e8e8'); // Bright sunlit surface
-            sphereGradient.addColorStop(0.3, '#c0c0c0'); // Mid-tone
-            sphereGradient.addColorStop(0.7, '#909090'); // Darker areas
-            sphereGradient.addColorStop(1, '#505050'); // Dark edge
-
-            ctx.fillStyle = sphereGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, moon.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Add craters with depth
-            ctx.globalAlpha = 0.6;
-
-            // Large crater 1
-            const crater1 = ctx.createRadialGradient(-4, -3, 0.5, -4, -3, 3.5);
-            crater1.addColorStop(0, '#606060');
-            crater1.addColorStop(0.7, '#808080');
-            crater1.addColorStop(1, '#a0a0a0');
-            ctx.fillStyle = crater1;
-            ctx.beginPath();
-            ctx.arc(-4, -3, 3.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Crater rim highlight
-            ctx.globalAlpha = 0.4;
-            ctx.fillStyle = '#d0d0d0';
-            ctx.beginPath();
-            ctx.arc(-5, -4, 1.2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Large crater 2
-            ctx.globalAlpha = 0.6;
-            const crater2 = ctx.createRadialGradient(5, 2, 0.3, 5, 2, 2.8);
-            crater2.addColorStop(0, '#707070');
-            crater2.addColorStop(0.7, '#909090');
-            crater2.addColorStop(1, '#a8a8a8');
-            ctx.fillStyle = crater2;
-            ctx.beginPath();
-            ctx.arc(5, 2, 2.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Small crater 3
-            const crater3 = ctx.createRadialGradient(-1, 6, 0.2, -1, 6, 2);
-            crater3.addColorStop(0, '#606060');
-            crater3.addColorStop(0.7, '#858585');
-            crater3.addColorStop(1, '#a0a0a0');
-            ctx.fillStyle = crater3;
-            ctx.beginPath();
-            ctx.arc(-1, 6, 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Small crater 4
-            const crater4 = ctx.createRadialGradient(3, -5, 0.2, 3, -5, 1.5);
-            crater4.addColorStop(0, '#656565');
-            crater4.addColorStop(0.7, '#888888');
-            crater4.addColorStop(1, '#a5a5a5');
-            ctx.fillStyle = crater4;
-            ctx.beginPath();
-            ctx.arc(3, -5, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Tiny craters for detail
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = '#7a7a7a';
-            ctx.beginPath();
-            ctx.arc(-7, 1, 0.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(7, -2, 0.6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(2, 7, 0.7, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Sphere edge shadow for depth
-            ctx.globalAlpha = 1;
-            const edgeShadow = ctx.createRadialGradient(0, 0, moon.radius * 0.85, 0, 0, moon.radius);
-            edgeShadow.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            edgeShadow.addColorStop(0.9, 'rgba(0, 0, 0, 0)');
-            edgeShadow.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
-            ctx.fillStyle = edgeShadow;
-            ctx.beginPath();
-            ctx.arc(0, 0, moon.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-
-            return { x: moonX, y: moonY };
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Save context and apply transformations
-            ctx.save();
-            ctx.translate(canvas.width / 2 + cameraX, canvas.height / 2 + cameraY);
-            ctx.scale(zoomLevel, zoomLevel);
-
-            // Draw everything
-            drawStars();
-            drawEarth();
-            const moonPos = drawMoon();
-
-            ctx.restore();
-
-            // Update moon indicator position
-            if (trackMoon) {
-                const screenX = canvas.width / 2 + (moonPos.x * zoomLevel) + cameraX;
-                const screenY = canvas.height / 2 + (moonPos.y * zoomLevel) + cameraY;
-                const indicator = document.getElementById('moonIndicator');
-                indicator.style.left = screenX + 'px';
-                indicator.style.top = screenY + 'px';
-            }
-        }
-
-        // Animation loop
-        let lastTime = 0;
-        function animate(currentTime) {
-            const deltaTime = (currentTime - lastTime) / 16.67; // Normalize to 60fps
-            lastTime = currentTime;
-
-            update(deltaTime || 1);
-            draw();
-            requestAnimationFrame(animate);
-        }
-        requestAnimationFrame(animate);
-
-        // Touch gesture helpers
         function getTouchDistance(touch1, touch2) {
             const dx = touch1.clientX - touch2.clientX;
             const dy = touch1.clientY - touch2.clientY;
             return Math.sqrt(dx * dx + dy * dy);
         }
 
-        // Touch event handlers
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                // Pinch to zoom
-                touchStartDistance = getTouchDistance(e.touches[0], e.touches[1]);
-                touchStartZoom = zoomLevel;
-                isPanning = false;
-            } else if (e.touches.length === 1) {
-                // Pan
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                isPanning = true;
+        // Mouse controls
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                cameraAngleX -= deltaX * 0.005;
+                cameraAngleY += deltaY * 0.005;
+
+                // Limit vertical rotation
+                cameraAngleY = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, cameraAngleY));
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
             }
         });
 
-        canvas.addEventListener('touchmove', (e) => {
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        renderer.domElement.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Mouse wheel zoom
+        renderer.domElement.addEventListener('wheel', (e) => {
             e.preventDefault();
-
-            if (e.touches.length === 2) {
-                // Pinch zoom
-                const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
-                const scale = currentDistance / touchStartDistance;
-                zoomLevel = Math.max(0.3, Math.min(5, touchStartZoom * scale));
-            } else if (e.touches.length === 1 && isPanning) {
-                // Pan
-                const deltaX = e.touches[0].clientX - touchStartX;
-                const deltaY = e.touches[0].clientY - touchStartY;
-                targetCameraX = cameraX + deltaX;
-                targetCameraY = cameraY + deltaY;
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }
-        });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                isPanning = false;
-            }
-        });
-
-        // Mouse wheel zoom for desktop
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            zoomLevel = Math.max(0.3, Math.min(5, zoomLevel * delta));
+            const delta = e.deltaY > 0 ? 1.1 : 0.9;
+            targetCameraDistance *= delta;
+            targetCameraDistance = Math.max(150, Math.min(2000, targetCameraDistance));
         }, { passive: false });
 
-        // Controls
+        // Touch controls
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                touchStartDistance = getTouchDistance(e.touches[0], e.touches[1]);
+                touchStartCameraDistance = cameraDistance;
+            } else if (e.touches.length === 1) {
+                isDragging = true;
+                previousMousePosition = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+            }
+        });
+
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+
+            if (e.touches.length === 2) {
+                const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+                const scale = touchStartDistance / currentDistance;
+                targetCameraDistance = touchStartCameraDistance * scale;
+                targetCameraDistance = Math.max(150, Math.min(2000, targetCameraDistance));
+            } else if (e.touches.length === 1 && isDragging) {
+                const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+                cameraAngleX -= deltaX * 0.01;
+                cameraAngleY += deltaY * 0.01;
+                cameraAngleY = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, cameraAngleY));
+
+                previousMousePosition = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+            }
+        }, { passive: false });
+
+        renderer.domElement.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // UI Controls
         document.getElementById('toggleControls').addEventListener('click', () => {
             const controls = document.getElementById('controls');
             const btn = document.getElementById('toggleControls');
@@ -613,40 +491,75 @@
         });
 
         document.getElementById('findMoon').addEventListener('click', () => {
-            // Calculate moon position
-            const moonX = Math.cos(moon.angle) * moon.orbitRadius;
-            const moonY = Math.sin(moon.angle) * moon.orbitRadius;
+            // Point camera at moon
+            const moonWorldPos = new THREE.Vector3();
+            moon.getWorldPosition(moonWorldPos);
 
-            // Center camera on moon
-            targetCameraX = -moonX * zoomLevel;
-            targetCameraY = -moonY * zoomLevel;
+            // Calculate angles to look at moon
+            const distance = 200; // Closer view
+            const direction = moonWorldPos.clone().normalize();
 
-            // Show indicator
-            trackMoon = true;
-            document.getElementById('moonIndicator').classList.add('active');
+            cameraAngleX = Math.atan2(direction.x, direction.z);
+            cameraAngleY = Math.asin(direction.y);
+            targetCameraDistance = 200;
 
-            // Clear existing timer
-            if (trackMoonTimer) clearTimeout(trackMoonTimer);
-
-            // Hide indicator after 3 seconds
-            trackMoonTimer = setTimeout(() => {
-                trackMoon = false;
-                document.getElementById('moonIndicator').classList.remove('active');
+            // Show info overlay
+            const overlay = document.getElementById('infoOverlay');
+            overlay.classList.add('visible');
+            setTimeout(() => {
+                overlay.classList.remove('visible');
             }, 3000);
         });
 
         document.getElementById('resetView').addEventListener('click', () => {
-            targetCameraX = 0;
-            targetCameraY = 0;
-            zoomLevel = 1;
-            trackMoon = false;
-            document.getElementById('moonIndicator').classList.remove('active');
+            cameraAngleX = 0;
+            cameraAngleY = Math.atan2(200, 400);
+            targetCameraDistance = 500;
         });
 
         document.getElementById('pausePlay').addEventListener('click', (e) => {
             isPaused = !isPaused;
             e.target.textContent = isPaused ? '▶️ Play' : '⏸️ Pause';
         });
+
+        // Window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isPaused) {
+                // Rotate Earth
+                earth.rotation.y += 0.001 * animationSpeed;
+                clouds.rotation.y += 0.0012 * animationSpeed;
+
+                // Orbit Moon
+                moonAngle += 0.002 * animationSpeed;
+                moon.position.x = Math.cos(moonAngle) * 600;
+                moon.position.z = Math.sin(moonAngle) * 600;
+
+                // Rotate Moon (tidally locked - same face towards Earth)
+                moon.rotation.y = moonAngle + Math.PI;
+            }
+
+            // Smooth camera distance
+            cameraDistance += (targetCameraDistance - cameraDistance) * 0.1;
+
+            // Update camera position based on angles
+            camera.position.x = cameraDistance * Math.sin(cameraAngleX) * Math.cos(cameraAngleY);
+            camera.position.y = cameraDistance * Math.sin(cameraAngleY);
+            camera.position.z = cameraDistance * Math.cos(cameraAngleX) * Math.cos(cameraAngleY);
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
     </script>
 </body>
 </html>
