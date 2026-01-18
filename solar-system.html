@@ -634,9 +634,9 @@
             const orbitPoints = createEllipticalOrbit(planet);
             orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitPoints, 3));
             const orbitMaterial = new THREE.LineBasicMaterial({
-                color: 0xffffff,
+                color: planet.color,  // Match planet color
                 transparent: true,
-                opacity: 0.3
+                opacity: 0.4
             });
             const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
             scene.add(orbitLine);
@@ -737,7 +737,7 @@
                 const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
                 const scale = touchStartDistance / currentDistance;
                 cameraDistance = touchStartCameraDistance * scale;
-                cameraDistance = Math.max(20, Math.min(150, cameraDistance));
+                cameraDistance = Math.max(15, Math.min(800, cameraDistance));  // Allow viewing entire solar system
             } else if (e.touches.length === 1 && isDragging) {
                 const deltaX = e.touches[0].clientX - previousMouse.x;
                 const deltaY = e.touches[0].clientY - previousMouse.y;
@@ -755,7 +755,7 @@
             e.preventDefault();
             const delta = e.deltaY > 0 ? 1.1 : 0.9;
             cameraDistance *= delta;
-            cameraDistance = Math.max(20, Math.min(150, cameraDistance));
+            cameraDistance = Math.max(15, Math.min(800, cameraDistance));  // Allow viewing entire solar system
         }, { passive: false });
 
         // UI
