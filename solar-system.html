@@ -286,28 +286,36 @@
     </div>
     <div id="container"></div>
 
-    <div class="ui-panel planet-list" id="planetListPanel">
+    <!-- Hamburger menu button -->
+    <button id="hamburgerBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1001; width: 48px; height: 48px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s;">
+        <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
+        <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
+        <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
+    </button>
+
+    <div class="ui-panel planet-list" id="planetListPanel" style="transform: translateX(-100%); transition: transform 0.3s;">
         <div class="panel-header">
             <h2 class="planet-list-title">🪐 Solar System</h2>
-            <button class="minimize-btn" id="minimizePlanets">−</button>
+            <button class="minimize-btn" id="closePlanets" style="border-radius: 8px; width: 36px;">✕</button>
         </div>
         <div class="planet-items" id="planetList"></div>
     </div>
 
-    <div class="ui-panel controls" id="controlsPanel">
-        <div class="control-section">
-            <button id="pauseBtn">⏸️ Pause</button>
-            <button id="speed1x" class="active">1×</button>
-            <button id="speed10x">10×</button>
-            <button id="speed100x">100×</button>
+    <!-- Time slider at bottom -->
+    <div id="timeSliderContainer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; z-index: 100; backdrop-filter: blur(10px);">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px;">Jan 18, 2026</div>
+            <div id="timeSpeedDisplay" style="font-size: 14px; color: #888;">Paused</div>
         </div>
-        <div class="control-section date-controls">
-            <label for="dateInput" style="font-size: 11px; color: #aaa; display: block; margin-bottom: 4px;">Date & Time (UTC)</label>
-            <input type="datetime-local" id="dateInput" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.6); border: 1px solid #555; border-radius: 4px; color: white; font-size: 12px;">
-            <button id="setDateBtn" style="margin-top: 6px; width: 100%;">Set Date</button>
-            <button id="resetDateBtn" style="margin-top: 4px; width: 100%; font-size: 11px; padding: 4px;">Now</button>
+        <div style="position: relative; height: 40px; display: flex; align-items: center;">
+            <div id="timeSliderTrack" style="position: relative; width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer;">
+                <div id="timeSliderHandle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: #667eea; border: 3px solid white; border-radius: 50%; cursor: grab; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.1s;"></div>
+            </div>
         </div>
-        <button class="minimize-btn" id="minimizeControls">−</button>
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 12px;">
+            <button id="pauseBtn2">⏸️ Pause</button>
+            <button id="resetDateBtn2">Now</button>
+        </div>
     </div>
 
     <div class="ui-panel info-panel" id="infoPanel" style="display: none;">
@@ -680,6 +688,44 @@
             }
         });
 
+        // Create 3D planet labels using sprites
+        const planetLabels = {};
+        Object.keys(PLANETS).forEach(id => {
+            const planet = PLANETS[id];
+
+            // Create canvas for text
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+
+            // Draw text
+            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.strokeStyle = planet.color;
+            context.lineWidth = 2;
+            context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+            context.font = 'Bold 32px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(planet.name.toUpperCase(), canvas.width / 2, canvas.height / 2);
+
+            // Create sprite
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 0.9
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(15, 4, 1);  // Adjust size
+
+            scene.add(sprite);
+            planetLabels[id] = sprite;
+        });
+
         // Controls
         let isPaused = false;
         let timeSpeed = 1;
@@ -799,68 +845,148 @@
             `;
         }
 
-        document.getElementById('pauseBtn').addEventListener('click', (e) => {
-            isPaused = !isPaused;
-            e.target.textContent = isPaused ? '▶️ Play' : '⏸️ Pause';
+        // Hamburger menu toggle
+        let planetPanelOpen = false;
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            planetPanelOpen = !planetPanelOpen;
+            const panel = document.getElementById('planetListPanel');
+            panel.style.transform = planetPanelOpen ? 'translateX(0)' : 'translateX(-100%)';
         });
 
-        document.getElementById('speed1x').addEventListener('click', () => {
-            timeSpeed = 1;
-            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-            document.getElementById('speed1x').classList.add('active');
+        document.getElementById('closePlanets').addEventListener('click', () => {
+            planetPanelOpen = false;
+            document.getElementById('planetListPanel').style.transform = 'translateX(-100%)';
         });
 
-        document.getElementById('speed10x').addEventListener('click', () => {
-            timeSpeed = 10;
-            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-            document.getElementById('speed10x').classList.add('active');
-        });
+        // Time slider functionality
+        let isSliderDragging = false;
+        let sliderDragPosition = 0;  // -1 (left) to 1 (right), 0 is center
+        let timeSliderActive = false;
 
-        document.getElementById('speed100x').addEventListener('click', () => {
-            timeSpeed = 100;
-            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-            document.getElementById('speed100x').classList.add('active');
-        });
+        const sliderHandle = document.getElementById('timeSliderHandle');
+        const sliderTrack = document.getElementById('timeSliderTrack');
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const timeSpeedDisplay = document.getElementById('timeSpeedDisplay');
 
-        // Date/Time controls
-        const dateInput = document.getElementById('dateInput');
-
-        // Initialize date input to current time
-        function formatDateForInput(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        function updateTimeSpeedDisplay() {
+            if (isPaused) {
+                timeSpeedDisplay.textContent = 'Paused';
+                timeSpeedDisplay.style.color = '#888';
+            } else {
+                const absSpeed = Math.abs(timeSpeed);
+                const direction = timeSpeed > 0 ? '→' : '←';
+                let speedText = '';
+                if (absSpeed < 2) speedText = '1 day/s';
+                else if (absSpeed < 10) speedText = `${absSpeed.toFixed(0)} days/s`;
+                else if (absSpeed < 100) speedText = `${(absSpeed / 7).toFixed(0)} weeks/s`;
+                else speedText = `${(absSpeed / 30).toFixed(0)} months/s`;
+                timeSpeedDisplay.textContent = `${direction} ${speedText}`;
+                timeSpeedDisplay.style.color = timeSpeed > 0 ? '#4CAF50' : '#FF9800';
+            }
         }
 
-        dateInput.value = formatDateForInput(currentDate);
+        function formatDateDisplay(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
 
-        document.getElementById('setDateBtn').addEventListener('click', () => {
-            const selectedDate = new Date(dateInput.value);
-            if (!isNaN(selectedDate.getTime())) {
-                useSpecificDate = true;
-                currentDate = selectedDate;
-                simulationStartTime = Date.now();
+        sliderHandle.addEventListener('mousedown', startSliderDrag);
+        sliderHandle.addEventListener('touchstart', startSliderDrag, { passive: false });
 
-                // Update all planet positions immediately
-                Object.keys(planetMeshes).forEach(id => {
-                    const planet = PLANETS[id];
-                    const mesh = planetMeshes[id];
-                    const meanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
-                    mesh.userData.angle = meanAnomaly * Math.PI / 180;
-                    const pos = getOrbitalPosition(planet, mesh.userData.angle);
-                    mesh.position.set(pos.x, pos.y, pos.z);
-                });
+        function startSliderDrag(e) {
+            e.preventDefault();
+            isSliderDragging = true;
+            timeSliderActive = true;
+            sliderHandle.style.cursor = 'grabbing';
+            sliderHandle.style.transform = 'translate(-50%, -50%) scale(1.2)';
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isSliderDragging) return;
+            const rect = sliderTrack.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const offsetX = e.clientX - centerX;
+            const maxOffset = rect.width / 2;
+            sliderDragPosition = Math.max(-1, Math.min(1, offsetX / maxOffset));
+
+            // Update handle position
+            const handlePosition = 50 + (sliderDragPosition * 40);  // 50% ± 40%
+            sliderHandle.style.left = `${handlePosition}%`;
+
+            // Calculate time speed based on drag distance
+            if (Math.abs(sliderDragPosition) < 0.05) {
+                isPaused = true;
+                timeSpeed = 0;
+            } else {
+                isPaused = false;
+                // Exponential speed scaling: slight drag = slow, far drag = fast
+                const absPos = Math.abs(sliderDragPosition);
+                timeSpeed = Math.sign(sliderDragPosition) * Math.pow(absPos * 100, 1.5);
             }
+
+            updateTimeSpeedDisplay();
         });
 
-        document.getElementById('resetDateBtn').addEventListener('click', () => {
-            useSpecificDate = false;
+        window.addEventListener('touchmove', (e) => {
+            if (!isSliderDragging || e.touches.length === 0) return;
+            const rect = sliderTrack.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const offsetX = e.touches[0].clientX - centerX;
+            const maxOffset = rect.width / 2;
+            sliderDragPosition = Math.max(-1, Math.min(1, offsetX / maxOffset));
+
+            // Update handle position
+            const handlePosition = 50 + (sliderDragPosition * 40);
+            sliderHandle.style.left = `${handlePosition}%`;
+
+            // Calculate time speed
+            if (Math.abs(sliderDragPosition) < 0.05) {
+                isPaused = true;
+                timeSpeed = 0;
+            } else {
+                isPaused = false;
+                timeSpeed = Math.sign(sliderDragPosition) * Math.pow(Math.abs(sliderDragPosition) * 100, 1.5);
+            }
+
+            updateTimeSpeedDisplay();
+        }, { passive: false });
+
+        window.addEventListener('mouseup', stopSliderDrag);
+        window.addEventListener('touchend', stopSliderDrag);
+
+        function stopSliderDrag() {
+            if (!isSliderDragging) return;
+            isSliderDragging = false;
+            timeSliderActive = false;
+            sliderHandle.style.cursor = 'grab';
+            sliderHandle.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            // Return to center
+            sliderHandle.style.left = '50%';
+            sliderDragPosition = 0;
+
+            // Keep the time speed that was set
+            updateTimeSpeedDisplay();
+        }
+
+        document.getElementById('pauseBtn2').addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                timeSpeed = 0;
+            } else if (timeSpeed === 0) {
+                timeSpeed = 1;
+            }
+            updateTimeSpeedDisplay();
+            document.getElementById('pauseBtn2').textContent = isPaused ? '▶️ Play' : '⏸️ Pause';
+        });
+
+        document.getElementById('resetDateBtn2').addEventListener('click', () => {
             currentDate = new Date();
             simulationStartTime = Date.now();
-            dateInput.value = formatDateForInput(currentDate);
+            isPaused = false;
+            timeSpeed = 0;
+            updateTimeSpeedDisplay();
+            currentDateDisplay.textContent = formatDateDisplay(currentDate);
 
             // Reset all planet positions
             Object.keys(planetMeshes).forEach(id => {
@@ -871,21 +997,6 @@
                 const pos = getOrbitalPosition(planet, mesh.userData.angle);
                 mesh.position.set(pos.x, pos.y, pos.z);
             });
-        });
-
-        // Minimize controls
-        document.getElementById('minimizePlanets').addEventListener('click', (e) => {
-            const panel = document.getElementById('planetListPanel');
-            const btn = e.target;
-            panel.classList.toggle('minimized');
-            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
-        });
-
-        document.getElementById('minimizeControls').addEventListener('click', (e) => {
-            const panel = document.getElementById('controlsPanel');
-            const btn = e.target;
-            panel.classList.toggle('minimized');
-            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
         });
 
         document.getElementById('minimizeInfo').addEventListener('click', (e) => {
@@ -905,11 +1016,6 @@
                 const frameTimeAdvance = 0.01 * timeSpeed * 86400000;  // Convert days to milliseconds
                 currentDate = new Date(currentDate.getTime() + frameTimeAdvance);
 
-                // Update date input display if using specific date mode
-                if (useSpecificDate && Math.random() < 0.1) {  // Update occasionally to avoid performance hit
-                    dateInput.value = formatDateForInput(currentDate);
-                }
-
                 Object.keys(planetMeshes).forEach(id => {
                     const planet = PLANETS[id];
                     const mesh = planetMeshes[id];
@@ -928,6 +1034,11 @@
 
                 sun.rotation.y += 0.001;
                 glow.rotation.y += 0.001;
+
+                // Update date display
+                if (Math.random() < 0.1) {  // Update occasionally
+                    currentDateDisplay.textContent = formatDateDisplay(currentDate);
+                }
             }
 
             // Update camera
@@ -954,6 +1065,26 @@
 
             // Keep stars centered on camera (infinitely distant - no parallax)
             stars.position.copy(camera.position);
+
+            // Update planet labels to follow planets
+            Object.keys(planetLabels).forEach(id => {
+                const mesh = planetMeshes[id];
+                const label = planetLabels[id];
+                const planet = PLANETS[id];
+
+                // Position label next to planet (offset based on planet size)
+                const labelOffset = planet.radius * 2 + 3;
+                label.position.set(
+                    mesh.position.x,
+                    mesh.position.y + labelOffset,
+                    mesh.position.z
+                );
+
+                // Scale labels based on distance from camera for readability
+                const distance = camera.position.distanceTo(mesh.position);
+                const scale = Math.max(0.5, Math.min(2, distance / 50));
+                label.scale.set(15 * scale, 4 * scale, 1);
+            });
 
             renderer.render(scene, camera);
         }
