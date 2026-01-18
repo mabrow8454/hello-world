@@ -258,6 +258,11 @@
     </style>
 </head>
 <body>
+    <div id="loading" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; z-index: 1000;">
+        <div style="font-size: 48px; margin-bottom: 20px;">🌍</div>
+        <div style="font-size: 18px;">Loading Solar System...</div>
+        <div style="font-size: 14px; color: #888; margin-top: 10px;">If this persists, try refreshing</div>
+    </div>
     <div id="container"></div>
 
     <div class="ui-panel planet-list" id="planetListPanel">
@@ -290,6 +295,35 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
     <script>
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Error:', e.message);
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.innerHTML = `
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                    <div style="font-size: 18px;">Something went wrong</div>
+                    <div style="font-size: 14px; color: #888; margin-top: 10px;">
+                        ${e.message || 'Please refresh the page'}
+                    </div>
+                `;
+            }
+        });
+    </script>
+
+    <script>
+        // Check if Three.js loaded
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading').innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                <div style="font-size: 18px;">Failed to load 3D engine</div>
+                <div style="font-size: 14px; color: #888; margin-top: 10px;">
+                    Please check your internet connection and refresh
+                </div>
+            `;
+            throw new Error('Three.js failed to load');
+        }
+
         // Planet data
         const PLANETS = {
             mercury: { name: 'Mercury', radius: 0.4, distance: 5, orbit: 88, rotation: 58.6, color: '#8C7853', desc: 'The smallest planet and closest to the Sun.' },
@@ -628,6 +662,16 @@
         });
 
         animate();
+
+        // Hide loading screen after first render
+        setTimeout(() => {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.style.opacity = '0';
+                loading.style.transition = 'opacity 0.5s';
+                setTimeout(() => loading.remove(), 500);
+            }
+        }, 500);
     </script>
 </body>
 </html>
