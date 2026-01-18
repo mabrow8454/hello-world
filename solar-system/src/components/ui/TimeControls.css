@@ -1,0 +1,99 @@
+.time-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 24px;
+  background: rgba(10, 10, 20, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  color: white;
+  z-index: 100;
+}
+
+.control-group {
+  display: flex;
+  gap: 10px;
+}
+
+.control-button {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.control-button:active {
+  transform: scale(0.95);
+}
+
+.speed-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speed-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-right: 4px;
+  font-weight: 500;
+}
+
+.speed-button {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speed-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.speed-button.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+  border-color: rgba(102, 126, 234, 0.5);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .time-controls {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .speed-controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
