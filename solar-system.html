@@ -324,16 +324,114 @@
             throw new Error('Three.js failed to load');
         }
 
-        // Planet data
+        // Planet data with real NASA orbital parameters
+        // Distances scaled for visualization (actual ratios preserved)
+        // Orbital elements from NASA JPL Horizons
         const PLANETS = {
-            mercury: { name: 'Mercury', radius: 0.4, distance: 5, orbit: 88, rotation: 58.6, color: '#8C7853', desc: 'The smallest planet and closest to the Sun.' },
-            venus: { name: 'Venus', radius: 0.95, distance: 7, orbit: 225, rotation: 243, color: '#FFC649', desc: 'Earth\'s "sister planet" with a thick toxic atmosphere.' },
-            earth: { name: 'Earth', radius: 1, distance: 10, orbit: 365, rotation: 1, color: '#4169E1', desc: 'Our home planet with liquid water and life.' },
-            mars: { name: 'Mars', radius: 0.5, distance: 15, orbit: 687, rotation: 1.03, color: '#CD5C5C', desc: 'The Red Planet with the largest volcano in the solar system.' },
-            jupiter: { name: 'Jupiter', radius: 2.5, distance: 25, orbit: 4333, rotation: 0.41, color: '#DAA520', desc: 'The largest planet, a gas giant with the Great Red Spot.' },
-            saturn: { name: 'Saturn', radius: 2.2, distance: 35, orbit: 10759, rotation: 0.45, color: '#F4E3B5', desc: 'The ringed planet with spectacular ice and rock rings.' },
-            uranus: { name: 'Uranus', radius: 1.5, distance: 45, orbit: 30687, rotation: 0.72, color: '#4FD0E7', desc: 'The ice giant that rotates on its side.' },
-            neptune: { name: 'Neptune', radius: 1.4, distance: 55, orbit: 60190, rotation: 0.67, color: '#4169E1', desc: 'The farthest planet with the fastest winds.' }
+            mercury: {
+                name: 'Mercury',
+                radius: 0.4,
+                semiMajorAxis: 5.8,      // 0.387 AU scaled
+                eccentricity: 0.2056,     // Real eccentricity
+                inclination: 7.005,       // degrees
+                longitudeAscending: 48.331, // Ω degrees
+                argumentPeriapsis: 29.124,  // ω degrees
+                orbit: 88,                // days
+                rotation: 58.6,
+                color: '#8C7853',
+                desc: 'The smallest planet and closest to the Sun.'
+            },
+            venus: {
+                name: 'Venus',
+                radius: 0.95,
+                semiMajorAxis: 10.8,
+                eccentricity: 0.0068,
+                inclination: 3.395,
+                longitudeAscending: 76.680,
+                argumentPeriapsis: 54.884,
+                orbit: 225,
+                rotation: 243,
+                color: '#FFC649',
+                desc: 'Earth\'s "sister planet" with a thick toxic atmosphere.'
+            },
+            earth: {
+                name: 'Earth',
+                radius: 1,
+                semiMajorAxis: 15.0,      // 1.000 AU - reference
+                eccentricity: 0.0167,
+                inclination: 0.000,       // Reference plane
+                longitudeAscending: 0.0,
+                argumentPeriapsis: 114.208,
+                orbit: 365,
+                rotation: 1,
+                color: '#4169E1',
+                desc: 'Our home planet with liquid water and life.'
+            },
+            mars: {
+                name: 'Mars',
+                radius: 0.5,
+                semiMajorAxis: 22.9,
+                eccentricity: 0.0934,
+                inclination: 1.850,
+                longitudeAscending: 49.558,
+                argumentPeriapsis: 286.502,
+                orbit: 687,
+                rotation: 1.03,
+                color: '#CD5C5C',
+                desc: 'The Red Planet with the largest volcano in the solar system.'
+            },
+            jupiter: {
+                name: 'Jupiter',
+                radius: 2.5,
+                semiMajorAxis: 78.0,
+                eccentricity: 0.0489,
+                inclination: 1.303,
+                longitudeAscending: 100.464,
+                argumentPeriapsis: 273.867,
+                orbit: 4333,
+                rotation: 0.41,
+                color: '#DAA520',
+                desc: 'The largest planet, a gas giant with the Great Red Spot.'
+            },
+            saturn: {
+                name: 'Saturn',
+                radius: 2.2,
+                semiMajorAxis: 143.1,
+                eccentricity: 0.0565,
+                inclination: 2.485,
+                longitudeAscending: 113.665,
+                argumentPeriapsis: 339.392,
+                orbit: 10759,
+                rotation: 0.45,
+                color: '#F4E3B5',
+                desc: 'The ringed planet with spectacular ice and rock rings.'
+            },
+            uranus: {
+                name: 'Uranus',
+                radius: 1.5,
+                semiMajorAxis: 287.9,
+                eccentricity: 0.0457,
+                inclination: 0.773,
+                longitudeAscending: 74.006,
+                argumentPeriapsis: 96.998,
+                orbit: 30687,
+                rotation: 0.72,
+                color: '#4FD0E7',
+                desc: 'The ice giant that rotates on its side.'
+            },
+            neptune: {
+                name: 'Neptune',
+                radius: 1.4,
+                semiMajorAxis: 451.0,
+                eccentricity: 0.0113,
+                inclination: 1.770,
+                longitudeAscending: 131.784,
+                argumentPeriapsis: 276.336,
+                orbit: 60190,
+                rotation: 0.67,
+                color: '#4169E1',
+                desc: 'The farthest planet with the fastest winds.'
+            }
         };
 
         // Scene setup
@@ -346,7 +444,7 @@
         document.getElementById('container').appendChild(renderer.domElement);
 
         scene.background = new THREE.Color(0x000510);
-        camera.position.set(0, 30, 60);
+        camera.position.set(0, 50, 80);  // Higher camera to see orbital inclinations
 
         // Lights
         const sunLight = new THREE.PointLight(0xffffff, 3, 0);
@@ -390,6 +488,63 @@
         const glow = new THREE.Mesh(glowGeometry, glowMaterial);
         scene.add(glow);
 
+        // Helper function to calculate position on elliptical orbit
+        function getOrbitalPosition(planet, meanAnomaly) {
+            const a = planet.semiMajorAxis;
+            const e = planet.eccentricity;
+            const inc = planet.inclination * Math.PI / 180;
+            const omega = planet.longitudeAscending * Math.PI / 180;
+            const w = planet.argumentPeriapsis * Math.PI / 180;
+
+            // Solve Kepler's equation to get eccentric anomaly (simplified Newton-Raphson)
+            let E = meanAnomaly;
+            for (let iter = 0; iter < 5; iter++) {
+                E = meanAnomaly + e * Math.sin(E);
+            }
+
+            // Calculate true anomaly from eccentric anomaly
+            const nu = 2 * Math.atan2(
+                Math.sqrt(1 + e) * Math.sin(E / 2),
+                Math.sqrt(1 - e) * Math.cos(E / 2)
+            );
+
+            // Orbital radius
+            const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+
+            // Position in orbital plane
+            const x_orb = r * Math.cos(nu);
+            const y_orb = r * Math.sin(nu);
+
+            // Rotate by argument of periapsis
+            const x_peri = x_orb * Math.cos(w) - y_orb * Math.sin(w);
+            const y_peri = x_orb * Math.sin(w) + y_orb * Math.cos(w);
+
+            // Apply 3D rotations for inclination and ascending node
+            const x_inc = x_peri;
+            const y_inc = y_peri * Math.cos(inc);
+            const z_inc = y_peri * Math.sin(inc);
+
+            const x = x_inc * Math.cos(omega) - y_inc * Math.sin(omega);
+            const y = x_inc * Math.sin(omega) + y_inc * Math.cos(omega);
+            const z = z_inc;
+
+            return { x, y: z, z: y };  // THREE.js uses Y-up
+        }
+
+        // Helper function to create elliptical orbit with proper 3D orientation
+        function createEllipticalOrbit(planet) {
+            const points = [];
+            const segments = 128;
+
+            for (let i = 0; i <= segments; i++) {
+                const meanAnomaly = (i / segments) * Math.PI * 2;
+                const pos = getOrbitalPosition(planet, meanAnomaly);
+                points.push(pos.x, pos.y, pos.z);
+            }
+
+            return points;
+        }
+
         // Create planets
         const planetMeshes = {};
         const orbitLines = {};
@@ -397,22 +552,14 @@
         Object.keys(PLANETS).forEach(id => {
             const planet = PLANETS[id];
 
-            // Orbit line
+            // Elliptical orbit line with real 3D orientation
             const orbitGeometry = new THREE.BufferGeometry();
-            const orbitPoints = [];
-            for (let i = 0; i <= 64; i++) {
-                const angle = (i / 64) * Math.PI * 2;
-                orbitPoints.push(
-                    Math.cos(angle) * planet.distance,
-                    0,
-                    Math.sin(angle) * planet.distance
-                );
-            }
+            const orbitPoints = createEllipticalOrbit(planet);
             orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitPoints, 3));
             const orbitMaterial = new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.3
             });
             const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
             scene.add(orbitLine);
@@ -455,8 +602,8 @@
         let isDragging = false;
         let previousMouse = { x: 0, y: 0 };
         let cameraAngleX = 0;
-        let cameraAngleY = Math.atan2(30, 60);
-        let cameraDistance = 70;
+        let cameraAngleY = Math.atan2(50, 80);  // Updated for better view of orbital planes
+        let cameraDistance = 95;
 
         // Mouse controls
         renderer.domElement.addEventListener('mousedown', (e) => {
@@ -621,9 +768,14 @@
                     const planet = PLANETS[id];
                     const mesh = planetMeshes[id];
 
+                    // Update mean anomaly (orbital angle)
                     mesh.userData.angle += (Math.PI * 2 / planet.orbit) * 0.01 * timeSpeed;
-                    mesh.position.x = Math.cos(mesh.userData.angle) * planet.distance;
-                    mesh.position.z = Math.sin(mesh.userData.angle) * planet.distance;
+
+                    // Calculate position on elliptical orbit
+                    const pos = getOrbitalPosition(planet, mesh.userData.angle);
+                    mesh.position.set(pos.x, pos.y, pos.z);
+
+                    // Planet rotation
                     mesh.rotation.y += 0.01 / planet.rotation;
                 });
 
