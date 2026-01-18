@@ -617,6 +617,11 @@
             return points;
         }
 
+        // Date/Time control variables (must be before planet creation)
+        let currentDate = new Date();  // Simulation date
+        let simulationStartTime = Date.now();  // Real time when simulation started
+        let useSpecificDate = false;
+
         // Create planets
         const planetMeshes = {};
         const orbitLines = {};
@@ -679,11 +684,6 @@
         let isPaused = false;
         let timeSpeed = 1;
         let selectedPlanet = null;
-
-        // Date/Time control
-        let useSpecificDate = false;
-        let currentDate = new Date();  // Simulation date
-        let simulationStartTime = Date.now();  // Real time when simulation started
 
         let isDragging = false;
         let previousMouse = { x: 0, y: 0 };
