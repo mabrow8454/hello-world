@@ -304,7 +304,8 @@
     <!-- Time slider at bottom -->
     <div id="timeSliderContainer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; z-index: 100; backdrop-filter: blur(10px);">
         <div style="text-align: center; margin-bottom: 10px;">
-            <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px;">Jan 18, 2026</div>
+            <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="document.getElementById('hiddenDatePicker').showPicker()">Jan 18, 2026 📅</div>
+            <input type="datetime-local" id="hiddenDatePicker" style="position: absolute; opacity: 0; pointer-events: none;">
             <div id="timeSpeedDisplay" style="font-size: 14px; color: #888;">Paused</div>
         </div>
         <div style="position: relative; height: 40px; display: flex; align-items: center;">
@@ -806,6 +807,18 @@
 
         // UI
         const planetListEl = document.getElementById('planetList');
+
+        // Add Sun to the list first
+        const sunItem = document.createElement('div');
+        sunItem.className = 'planet-item';
+        sunItem.innerHTML = `
+            <div class="planet-color" style="background-color: #FDB813;"></div>
+            <div class="planet-name">Sun</div>
+        `;
+        sunItem.addEventListener('click', () => selectPlanet('sun'));
+        planetListEl.appendChild(sunItem);
+
+        // Add planets
         Object.keys(PLANETS).forEach(id => {
             const planet = PLANETS[id];
             const item = document.createElement('div');
@@ -819,30 +832,54 @@
         });
 
         function selectPlanet(id) {
-            selectedPlanet = id;
-            document.querySelectorAll('.planet-item').forEach((el, i) => {
-                el.classList.toggle('selected', Object.keys(PLANETS)[i] === id);
+            selectedPlanet = id === 'sun' ? null : id;  // Sun = no planet selection for camera
+
+            // Update selected state in UI
+            document.querySelectorAll('.planet-item').forEach(el => {
+                const name = el.querySelector('.planet-name').textContent.toLowerCase();
+                el.classList.toggle('selected', name === (id === 'sun' ? 'sun' : PLANETS[id]?.name.toLowerCase()));
             });
 
-            const planet = PLANETS[id];
+            // Show info panel
             const infoPanel = document.getElementById('infoPanel');
             infoPanel.style.display = 'block';
-            document.getElementById('planetTitle').textContent = planet.name;
-            document.getElementById('planetDesc').textContent = planet.desc;
-            document.getElementById('planetStats').innerHTML = `
-                <div class="stat">
-                    <span class="stat-label">Radius</span>
-                    <span class="stat-value">${planet.radius.toFixed(2)} × Earth</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Orbital Period</span>
-                    <span class="stat-value">${planet.orbit} days</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Day Length</span>
-                    <span class="stat-value">${planet.rotation.toFixed(2)} Earth days</span>
-                </div>
-            `;
+
+            if (id === 'sun') {
+                document.getElementById('planetTitle').textContent = 'Sun';
+                document.getElementById('planetDesc').textContent = 'The star at the center of our Solar System, containing 99.86% of the system\'s mass.';
+                document.getElementById('planetStats').innerHTML = `
+                    <div class="stat">
+                        <span class="stat-label">Type</span>
+                        <span class="stat-value">G-type Main Sequence Star</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Radius</span>
+                        <span class="stat-value">695,700 km</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Surface Temperature</span>
+                        <span class="stat-value">5,778 K</span>
+                    </div>
+                `;
+            } else {
+                const planet = PLANETS[id];
+                document.getElementById('planetTitle').textContent = planet.name;
+                document.getElementById('planetDesc').textContent = planet.desc;
+                document.getElementById('planetStats').innerHTML = `
+                    <div class="stat">
+                        <span class="stat-label">Radius</span>
+                        <span class="stat-value">${planet.radius.toFixed(2)} × Earth</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Orbital Period</span>
+                        <span class="stat-value">${planet.orbit} days</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Day Length</span>
+                        <span class="stat-value">${planet.rotation.toFixed(2)} Earth days</span>
+                    </div>
+                `;
+            }
         }
 
         // Hamburger menu toggle
@@ -889,6 +926,42 @@
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
         }
+
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Initialize hidden date picker with current date
+        const hiddenDatePicker = document.getElementById('hiddenDatePicker');
+        hiddenDatePicker.value = formatDateForInput(currentDate);
+
+        // Handle date selection
+        hiddenDatePicker.addEventListener('change', (e) => {
+            const selectedDate = new Date(e.target.value);
+            if (!isNaN(selectedDate.getTime())) {
+                currentDate = selectedDate;
+                simulationStartTime = Date.now();
+                isPaused = true;
+                timeSpeed = 0;
+                updateTimeSpeedDisplay();
+                currentDateDisplay.textContent = formatDateDisplay(currentDate) + ' 📅';
+
+                // Update all planet positions immediately
+                Object.keys(planetMeshes).forEach(id => {
+                    const planet = PLANETS[id];
+                    const mesh = planetMeshes[id];
+                    const meanAnomaly = getMeanAnomalyAtDate(planet, currentDate);
+                    mesh.userData.angle = meanAnomaly * Math.PI / 180;
+                    const pos = getOrbitalPosition(planet, mesh.userData.angle);
+                    mesh.position.set(pos.x, pos.y, pos.z);
+                });
+            }
+        });
 
         sliderHandle.addEventListener('mousedown', startSliderDrag);
         sliderHandle.addEventListener('touchstart', startSliderDrag, { passive: false });
@@ -986,7 +1059,8 @@
             isPaused = false;
             timeSpeed = 0;
             updateTimeSpeedDisplay();
-            currentDateDisplay.textContent = formatDateDisplay(currentDate);
+            currentDateDisplay.textContent = formatDateDisplay(currentDate) + ' 📅';
+            hiddenDatePicker.value = formatDateForInput(currentDate);
 
             // Reset all planet positions
             Object.keys(planetMeshes).forEach(id => {
@@ -1037,7 +1111,7 @@
 
                 // Update date display
                 if (Math.random() < 0.1) {  // Update occasionally
-                    currentDateDisplay.textContent = formatDateDisplay(currentDate);
+                    currentDateDisplay.textContent = formatDateDisplay(currentDate) + ' 📅';
                 }
             }
 
@@ -1081,9 +1155,11 @@
                 );
 
                 // Scale labels based on distance from camera for readability
+                // Use inverse square root for better scaling at all distances
                 const distance = camera.position.distanceTo(mesh.position);
-                const scale = Math.max(0.5, Math.min(2, distance / 50));
-                label.scale.set(15 * scale, 4 * scale, 1);
+                const baseScale = Math.sqrt(distance) * 0.4;  // Smaller base scale
+                const scale = Math.max(0.3, Math.min(1.5, baseScale));
+                label.scale.set(12 * scale, 3.2 * scale, 1);
             });
 
             renderer.render(scene, camera);
