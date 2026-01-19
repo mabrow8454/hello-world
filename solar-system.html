@@ -389,9 +389,9 @@
         const PLANETS = {
             mercury: {
                 name: 'Mercury',
-                radius: 0.128,  // Scaled for realistic orbital view
-                semiMajorAxis: 5.8,      // 0.387 AU scaled
-                eccentricity: 0.2056,     // Real eccentricity
+                radius: 0.0114,  // 0.38× Earth diameter
+                semiMajorAxis: 5.85,     // 0.39 AU scaled (15 units/AU)
+                eccentricity: 0.206,     // Real eccentricity
                 inclination: 7.005,       // degrees
                 longitudeAscending: 48.331, // Ω degrees
                 argumentPeriapsis: 29.124,  // ω degrees
@@ -403,9 +403,9 @@
             },
             venus: {
                 name: 'Venus',
-                radius: 0.316,  // Scaled for realistic orbital view
-                semiMajorAxis: 10.8,
-                eccentricity: 0.0068,
+                radius: 0.0285,  // 0.95× Earth diameter
+                semiMajorAxis: 10.8,     // 0.72 AU scaled
+                eccentricity: 0.007,
                 inclination: 3.395,
                 longitudeAscending: 76.680,
                 argumentPeriapsis: 54.884,
@@ -417,9 +417,9 @@
             },
             earth: {
                 name: 'Earth',
-                radius: 0.333,  // Scaled for realistic orbital view
-                semiMajorAxis: 15.0,      // 1.000 AU - reference
-                eccentricity: 0.0167,
+                radius: 0.03,  // 1.00× Earth diameter (reference)
+                semiMajorAxis: 15.0,      // 1.00 AU - reference
+                eccentricity: 0.017,
                 inclination: 0.000,       // Reference plane
                 longitudeAscending: 0.0,
                 argumentPeriapsis: 114.208,
@@ -431,9 +431,9 @@
             },
             mars: {
                 name: 'Mars',
-                radius: 0.177,  // Scaled for realistic orbital view
-                semiMajorAxis: 22.9,
-                eccentricity: 0.0934,
+                radius: 0.0159,  // 0.53× Earth diameter
+                semiMajorAxis: 22.8,     // 1.52 AU scaled
+                eccentricity: 0.093,
                 inclination: 1.850,
                 longitudeAscending: 49.558,
                 argumentPeriapsis: 286.502,
@@ -445,9 +445,9 @@
             },
             jupiter: {
                 name: 'Jupiter',
-                radius: 3.737,  // Scaled for realistic orbital view
-                semiMajorAxis: 78.0,
-                eccentricity: 0.0489,
+                radius: 0.336,  // 11.2× Earth diameter
+                semiMajorAxis: 78.0,     // 5.20 AU scaled
+                eccentricity: 0.049,
                 inclination: 1.303,
                 longitudeAscending: 100.464,
                 argumentPeriapsis: 273.867,
@@ -459,9 +459,9 @@
             },
             saturn: {
                 name: 'Saturn',
-                radius: 3.15,  // Scaled for realistic orbital view
-                semiMajorAxis: 143.1,
-                eccentricity: 0.0565,
+                radius: 0.2835,  // 9.45× Earth diameter
+                semiMajorAxis: 143.7,    // 9.58 AU scaled
+                eccentricity: 0.056,
                 inclination: 2.485,
                 longitudeAscending: 113.665,
                 argumentPeriapsis: 339.392,
@@ -473,9 +473,9 @@
             },
             uranus: {
                 name: 'Uranus',
-                radius: 1.337,  // Scaled for realistic orbital view
-                semiMajorAxis: 287.9,
-                eccentricity: 0.0457,
+                radius: 0.12,  // 4.0× Earth diameter
+                semiMajorAxis: 288.0,    // 19.2 AU scaled
+                eccentricity: 0.047,
                 inclination: 0.773,
                 longitudeAscending: 74.006,
                 argumentPeriapsis: 96.998,
@@ -487,9 +487,9 @@
             },
             neptune: {
                 name: 'Neptune',
-                radius: 1.293,  // Scaled for realistic orbital view
-                semiMajorAxis: 451.0,
-                eccentricity: 0.0113,
+                radius: 0.1164,  // 3.88× Earth diameter
+                semiMajorAxis: 451.5,    // 30.1 AU scaled
+                eccentricity: 0.009,
                 inclination: 1.770,
                 longitudeAscending: 131.784,
                 argumentPeriapsis: 276.336,
@@ -507,7 +507,7 @@
             moon: {
                 name: 'Moon',
                 parent: 'earth',
-                radius: 0.09,  // Scaled for realistic orbital view
+                radius: 0.0081,  // 0.27× Earth diameter
                 semiMajorAxis: 0.0384,  // 384,400 km = 0.00257 AU scaled to 15 units/AU
                 eccentricity: 0.0549,
                 inclination: 5.145,  // degrees relative to ecliptic
@@ -718,9 +718,9 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        // Sun (scaled down for visibility relative to orbital distances)
-        // Real Sun is 109x Earth radius, but orbital scales require smaller Sun for realistic view
-        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
+        // Sun (109× Earth diameter, scaled for visualization)
+        // Accurate ratio maintained while keeping visibility at orbital scale
+        const sunGeometry = new THREE.SphereGeometry(3.27, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
             color: 0xFDB813,
             emissive: 0xFDB813,
