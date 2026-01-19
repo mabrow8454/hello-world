@@ -373,7 +373,7 @@
         const PLANETS = {
             mercury: {
                 name: 'Mercury',
-                radius: 0.4,
+                radius: 0.383,  // Actual radius relative to Earth
                 semiMajorAxis: 5.8,      // 0.387 AU scaled
                 eccentricity: 0.2056,     // Real eccentricity
                 inclination: 7.005,       // degrees
@@ -387,7 +387,7 @@
             },
             venus: {
                 name: 'Venus',
-                radius: 0.95,
+                radius: 0.949,  // Actual radius relative to Earth
                 semiMajorAxis: 10.8,
                 eccentricity: 0.0068,
                 inclination: 3.395,
@@ -401,7 +401,7 @@
             },
             earth: {
                 name: 'Earth',
-                radius: 1,
+                radius: 1.000,  // Reference: Earth radius
                 semiMajorAxis: 15.0,      // 1.000 AU - reference
                 eccentricity: 0.0167,
                 inclination: 0.000,       // Reference plane
@@ -415,7 +415,7 @@
             },
             mars: {
                 name: 'Mars',
-                radius: 0.5,
+                radius: 0.532,  // Actual radius relative to Earth
                 semiMajorAxis: 22.9,
                 eccentricity: 0.0934,
                 inclination: 1.850,
@@ -429,7 +429,7 @@
             },
             jupiter: {
                 name: 'Jupiter',
-                radius: 2.5,
+                radius: 11.21,  // Actual radius relative to Earth
                 semiMajorAxis: 78.0,
                 eccentricity: 0.0489,
                 inclination: 1.303,
@@ -443,7 +443,7 @@
             },
             saturn: {
                 name: 'Saturn',
-                radius: 2.2,
+                radius: 9.45,  // Actual radius relative to Earth
                 semiMajorAxis: 143.1,
                 eccentricity: 0.0565,
                 inclination: 2.485,
@@ -457,7 +457,7 @@
             },
             uranus: {
                 name: 'Uranus',
-                radius: 1.5,
+                radius: 4.01,  // Actual radius relative to Earth
                 semiMajorAxis: 287.9,
                 eccentricity: 0.0457,
                 inclination: 0.773,
@@ -471,7 +471,7 @@
             },
             neptune: {
                 name: 'Neptune',
-                radius: 1.4,
+                radius: 3.88,  // Actual radius relative to Earth
                 semiMajorAxis: 451.0,
                 eccentricity: 0.0113,
                 inclination: 1.770,
@@ -911,12 +911,15 @@
             const moon = MOONS[id];
             const parentPlanet = PLANETS[moon.parent];
 
-            // Create moon sphere (much smaller than planets)
-            const geometry = new THREE.SphereGeometry(moon.radius * parentPlanet.radius * 0.5, 16, 16);
+            // Create moon sphere with accurate size but minimum for visibility
+            // moon.radius is already relative to Earth (same as planet radii)
+            const moonSize = Math.max(0.08, moon.radius);  // Minimum 0.08 units for visibility
+
+            const geometry = new THREE.SphereGeometry(moonSize, 16, 16);
             const material = new THREE.MeshStandardMaterial({
                 color: moon.color,
                 emissive: moon.color,
-                emissiveIntensity: 0.2,
+                emissiveIntensity: 0.3,
                 metalness: 0.1,
                 roughness: 0.8
             });
