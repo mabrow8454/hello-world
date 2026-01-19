@@ -38,7 +38,10 @@
             top: 20px;
             left: 20px;
             max-width: 280px;
+            max-height: calc(100vh - 140px);  /* Leave room for time controls */
+            overflow-y: auto;
             transition: all 0.3s ease;
+            z-index: 1000;  /* Above time controls */
         }
 
         .planet-list.minimized {
@@ -186,6 +189,7 @@
             top: 20px;
             right: 20px;
             max-width: 300px;
+            z-index: 1002;  /* Above hamburger menu */
         }
 
         .info-panel h3 {
@@ -302,7 +306,7 @@
     </div>
 
     <!-- Time slider at bottom -->
-    <div id="timeSliderContainer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; z-index: 100; backdrop-filter: blur(10px);">
+    <div id="timeSliderContainer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; z-index: 50; backdrop-filter: blur(10px);">
         <div style="text-align: center; margin-bottom: 10px; position: relative;">
             <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px; padding: 8px; border-radius: 6px; pointer-events: none;">Jan 18, 2026 📅</div>
             <input type="datetime-local" id="hiddenDatePicker" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 40px; opacity: 0; cursor: pointer; z-index: 10;">
@@ -488,7 +492,7 @@
                 name: 'Moon',
                 parent: 'earth',
                 radius: 0.27,  // Relative to Earth
-                semiMajorAxis: 3.84,  // Scaled orbital radius
+                semiMajorAxis: 0.0384,  // 384,400 km = 0.00257 AU scaled to 15 units/AU
                 eccentricity: 0.0549,
                 inclination: 5.145,  // degrees relative to ecliptic
                 longitudeAscending: 125.08,
@@ -501,7 +505,7 @@
                 name: 'Phobos',
                 parent: 'mars',
                 radius: 0.02,
-                semiMajorAxis: 0.94,
+                semiMajorAxis: 0.0094,  // 9,376 km
                 eccentricity: 0.0151,
                 inclination: 1.093,
                 longitudeAscending: 0,
@@ -514,7 +518,7 @@
                 name: 'Deimos',
                 parent: 'mars',
                 radius: 0.015,
-                semiMajorAxis: 2.35,
+                semiMajorAxis: 0.0235,  // 23,463 km
                 eccentricity: 0.0002,
                 inclination: 0.93,
                 longitudeAscending: 0,
@@ -527,7 +531,7 @@
                 name: 'Io',
                 parent: 'jupiter',
                 radius: 0.29,
-                semiMajorAxis: 4.22,
+                semiMajorAxis: 0.0422,  // 421,700 km
                 eccentricity: 0.0041,
                 inclination: 0.05,
                 longitudeAscending: 43.977,
@@ -540,7 +544,7 @@
                 name: 'Europa',
                 parent: 'jupiter',
                 radius: 0.245,
-                semiMajorAxis: 6.71,
+                semiMajorAxis: 0.0671,  // 671,000 km
                 eccentricity: 0.0094,
                 inclination: 0.47,
                 longitudeAscending: 219.106,
@@ -553,7 +557,7 @@
                 name: 'Ganymede',
                 parent: 'jupiter',
                 radius: 0.413,
-                semiMajorAxis: 10.7,
+                semiMajorAxis: 0.107,  // 1,070,000 km
                 eccentricity: 0.0013,
                 inclination: 0.20,
                 longitudeAscending: 63.552,
@@ -566,7 +570,7 @@
                 name: 'Callisto',
                 parent: 'jupiter',
                 radius: 0.378,
-                semiMajorAxis: 18.8,
+                semiMajorAxis: 0.188,  // 1,880,000 km
                 eccentricity: 0.0074,
                 inclination: 0.19,
                 longitudeAscending: 298.848,
@@ -579,7 +583,7 @@
                 name: 'Titan',
                 parent: 'saturn',
                 radius: 0.404,
-                semiMajorAxis: 12.2,
+                semiMajorAxis: 0.122,  // 1,220,000 km
                 eccentricity: 0.0288,
                 inclination: 0.28,
                 longitudeAscending: 28.06,
@@ -592,7 +596,7 @@
                 name: 'Rhea',
                 parent: 'saturn',
                 radius: 0.12,
-                semiMajorAxis: 5.27,
+                semiMajorAxis: 0.0527,  // 527,000 km
                 eccentricity: 0.0010,
                 inclination: 0.35,
                 longitudeAscending: 0,
@@ -605,7 +609,7 @@
                 name: 'Enceladus',
                 parent: 'saturn',
                 radius: 0.04,
-                semiMajorAxis: 2.38,
+                semiMajorAxis: 0.0238,  // 238,000 km
                 eccentricity: 0.0047,
                 inclination: 0.009,
                 longitudeAscending: 0,
@@ -618,7 +622,7 @@
                 name: 'Titania',
                 parent: 'uranus',
                 radius: 0.124,
-                semiMajorAxis: 4.36,
+                semiMajorAxis: 0.0436,  // 436,000 km
                 eccentricity: 0.0011,
                 inclination: 0.34,
                 longitudeAscending: 0,
@@ -631,7 +635,7 @@
                 name: 'Oberon',
                 parent: 'uranus',
                 radius: 0.119,
-                semiMajorAxis: 5.84,
+                semiMajorAxis: 0.0584,  // 584,000 km
                 eccentricity: 0.0014,
                 inclination: 0.07,
                 longitudeAscending: 0,
@@ -644,7 +648,7 @@
                 name: 'Triton',
                 parent: 'neptune',
                 radius: 0.212,
-                semiMajorAxis: 3.55,
+                semiMajorAxis: 0.0355,  // 355,000 km
                 eccentricity: 0.000016,
                 inclination: 156.885,  // Retrograde orbit!
                 longitudeAscending: 0,
