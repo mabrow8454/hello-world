@@ -293,7 +293,7 @@
         <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
     </button>
 
-    <div class="ui-panel planet-list" id="planetListPanel" style="transform: translateX(-100%); transition: transform 0.3s;">
+    <div class="ui-panel planet-list" id="planetListPanel" style="transform: translateX(calc(-100% - 20px)); transition: transform 0.3s;">
         <div class="panel-header">
             <h2 class="planet-list-title">🪐 Solar System</h2>
             <button class="minimize-btn" id="closePlanets" style="border-radius: 8px; width: 36px;">✕</button>
@@ -303,9 +303,9 @@
 
     <!-- Time slider at bottom -->
     <div id="timeSliderContainer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; z-index: 100; backdrop-filter: blur(10px);">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="document.getElementById('hiddenDatePicker').showPicker()">Jan 18, 2026 📅</div>
-            <input type="datetime-local" id="hiddenDatePicker" style="position: absolute; opacity: 0; pointer-events: none;">
+        <div style="text-align: center; margin-bottom: 10px; position: relative;">
+            <div id="currentDateDisplay" style="font-size: 16px; color: white; font-weight: bold; margin-bottom: 8px; padding: 8px; border-radius: 6px; pointer-events: none;">Jan 18, 2026 📅</div>
+            <input type="datetime-local" id="hiddenDatePicker" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 40px; opacity: 0; cursor: pointer; z-index: 10;">
             <div id="timeSpeedDisplay" style="font-size: 14px; color: #888;">Paused</div>
         </div>
         <div style="position: relative; height: 40px; display: flex; align-items: center;">
@@ -478,6 +478,180 @@
                 rotation: 0.67,
                 color: '#4169E1',
                 desc: 'The farthest planet with the fastest winds.'
+            }
+        };
+
+        // Moon data with real NASA orbital parameters
+        // Orbital elements relative to their parent planets
+        const MOONS = {
+            moon: {
+                name: 'Moon',
+                parent: 'earth',
+                radius: 0.27,  // Relative to Earth
+                semiMajorAxis: 3.84,  // Scaled orbital radius
+                eccentricity: 0.0549,
+                inclination: 5.145,  // degrees relative to ecliptic
+                longitudeAscending: 125.08,
+                argumentPeriapsis: 318.15,
+                meanAnomalyEpoch: 135.27,
+                orbit: 27.322,  // days
+                color: '#AAAAAA'
+            },
+            phobos: {
+                name: 'Phobos',
+                parent: 'mars',
+                radius: 0.02,
+                semiMajorAxis: 0.94,
+                eccentricity: 0.0151,
+                inclination: 1.093,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 0,
+                orbit: 0.319,  // 7.65 hours
+                color: '#8B7355'
+            },
+            deimos: {
+                name: 'Deimos',
+                parent: 'mars',
+                radius: 0.015,
+                semiMajorAxis: 2.35,
+                eccentricity: 0.0002,
+                inclination: 0.93,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 180,
+                orbit: 1.262,  // days
+                color: '#9B8366'
+            },
+            io: {
+                name: 'Io',
+                parent: 'jupiter',
+                radius: 0.29,
+                semiMajorAxis: 4.22,
+                eccentricity: 0.0041,
+                inclination: 0.05,
+                longitudeAscending: 43.977,
+                argumentPeriapsis: 84.129,
+                meanAnomalyEpoch: 342.21,
+                orbit: 1.769,  // days
+                color: '#FFD700'
+            },
+            europa: {
+                name: 'Europa',
+                parent: 'jupiter',
+                radius: 0.245,
+                semiMajorAxis: 6.71,
+                eccentricity: 0.0094,
+                inclination: 0.47,
+                longitudeAscending: 219.106,
+                argumentPeriapsis: 88.970,
+                meanAnomalyEpoch: 171.016,
+                orbit: 3.551,  // days
+                color: '#C9C9D4'
+            },
+            ganymede: {
+                name: 'Ganymede',
+                parent: 'jupiter',
+                radius: 0.413,
+                semiMajorAxis: 10.7,
+                eccentricity: 0.0013,
+                inclination: 0.20,
+                longitudeAscending: 63.552,
+                argumentPeriapsis: 192.417,
+                meanAnomalyEpoch: 317.540,
+                orbit: 7.155,  // days
+                color: '#8B8B9F'
+            },
+            callisto: {
+                name: 'Callisto',
+                parent: 'jupiter',
+                radius: 0.378,
+                semiMajorAxis: 18.8,
+                eccentricity: 0.0074,
+                inclination: 0.19,
+                longitudeAscending: 298.848,
+                argumentPeriapsis: 52.643,
+                meanAnomalyEpoch: 181.408,
+                orbit: 16.689,  // days
+                color: '#696969'
+            },
+            titan: {
+                name: 'Titan',
+                parent: 'saturn',
+                radius: 0.404,
+                semiMajorAxis: 12.2,
+                eccentricity: 0.0288,
+                inclination: 0.28,
+                longitudeAscending: 28.06,
+                argumentPeriapsis: 180.532,
+                meanAnomalyEpoch: 163.51,
+                orbit: 15.945,  // days
+                color: '#FFA500'
+            },
+            rhea: {
+                name: 'Rhea',
+                parent: 'saturn',
+                radius: 0.12,
+                semiMajorAxis: 5.27,
+                eccentricity: 0.0010,
+                inclination: 0.35,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 90,
+                orbit: 4.518,  // days
+                color: '#E0E0E0'
+            },
+            enceladus: {
+                name: 'Enceladus',
+                parent: 'saturn',
+                radius: 0.04,
+                semiMajorAxis: 2.38,
+                eccentricity: 0.0047,
+                inclination: 0.009,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 270,
+                orbit: 1.370,  // days
+                color: '#F0F8FF'
+            },
+            titania: {
+                name: 'Titania',
+                parent: 'uranus',
+                radius: 0.124,
+                semiMajorAxis: 4.36,
+                eccentricity: 0.0011,
+                inclination: 0.34,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 0,
+                orbit: 8.706,  // days
+                color: '#B0C4DE'
+            },
+            oberon: {
+                name: 'Oberon',
+                parent: 'uranus',
+                radius: 0.119,
+                semiMajorAxis: 5.84,
+                eccentricity: 0.0014,
+                inclination: 0.07,
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 180,
+                orbit: 13.463,  // days
+                color: '#9FB6CD'
+            },
+            triton: {
+                name: 'Triton',
+                parent: 'neptune',
+                radius: 0.212,
+                semiMajorAxis: 3.55,
+                eccentricity: 0.000016,
+                inclination: 156.885,  // Retrograde orbit!
+                longitudeAscending: 0,
+                argumentPeriapsis: 0,
+                meanAnomalyEpoch: 0,
+                orbit: -5.877,  // Negative = retrograde
+                color: '#FFB6C1'
             }
         };
 
@@ -727,6 +901,31 @@
             planetLabels[id] = sprite;
         });
 
+        // Create moons
+        const moonMeshes = {};
+        Object.keys(MOONS).forEach(id => {
+            const moon = MOONS[id];
+            const parentPlanet = PLANETS[moon.parent];
+
+            // Create moon sphere (much smaller than planets)
+            const geometry = new THREE.SphereGeometry(moon.radius * parentPlanet.radius * 0.5, 16, 16);
+            const material = new THREE.MeshStandardMaterial({
+                color: moon.color,
+                emissive: moon.color,
+                emissiveIntensity: 0.2,
+                metalness: 0.1,
+                roughness: 0.8
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            // Initialize moon at its position relative to parent planet
+            const initialAngle = moon.meanAnomalyEpoch * Math.PI / 180;
+            mesh.userData = { id, angle: initialAngle, parent: moon.parent };
+
+            scene.add(mesh);
+            moonMeshes[id] = mesh;
+        });
+
         // Controls
         let isPaused = false;
         let timeSpeed = 1;
@@ -887,12 +1086,12 @@
         document.getElementById('hamburgerBtn').addEventListener('click', () => {
             planetPanelOpen = !planetPanelOpen;
             const panel = document.getElementById('planetListPanel');
-            panel.style.transform = planetPanelOpen ? 'translateX(0)' : 'translateX(-100%)';
+            panel.style.transform = planetPanelOpen ? 'translateX(0)' : 'translateX(calc(-100% - 20px))';
         });
 
         document.getElementById('closePlanets').addEventListener('click', () => {
             planetPanelOpen = false;
-            document.getElementById('planetListPanel').style.transform = 'translateX(-100%)';
+            document.getElementById('planetListPanel').style.transform = 'translateX(calc(-100% - 20px))';
         });
 
         // Time slider functionality
@@ -1109,6 +1308,34 @@
                 sun.rotation.y += 0.001;
                 glow.rotation.y += 0.001;
 
+                // Update moons (orbiting their parent planets)
+                Object.keys(moonMeshes).forEach(id => {
+                    const moon = MOONS[id];
+                    const mesh = moonMeshes[id];
+                    const parentMesh = planetMeshes[moon.parent];
+
+                    // Advance moon's orbital angle
+                    const meanMotion = (Math.PI * 2 / Math.abs(moon.orbit));  // radians per day
+                    const direction = moon.orbit > 0 ? 1 : -1;  // Handle retrograde orbits (Triton)
+                    mesh.userData.angle += meanMotion * 0.01 * timeSpeed * direction;
+
+                    // Calculate moon position using Keplerian elements relative to parent
+                    const pos = getOrbitalPosition({
+                        semiMajorAxis: moon.semiMajorAxis,
+                        eccentricity: moon.eccentricity,
+                        inclination: moon.inclination,
+                        longitudeAscending: moon.longitudeAscending,
+                        argumentPeriapsis: moon.argumentPeriapsis
+                    }, mesh.userData.angle);
+
+                    // Position relative to parent planet
+                    mesh.position.set(
+                        parentMesh.position.x + pos.x,
+                        parentMesh.position.y + pos.y,
+                        parentMesh.position.z + pos.z
+                    );
+                });
+
                 // Update date display
                 if (Math.random() < 0.1) {  // Update occasionally
                     currentDateDisplay.textContent = formatDateDisplay(currentDate) + ' 📅';
@@ -1157,9 +1384,9 @@
                 // Scale labels based on distance from camera for readability
                 // Use inverse square root for better scaling at all distances
                 const distance = camera.position.distanceTo(mesh.position);
-                const baseScale = Math.sqrt(distance) * 0.4;  // Smaller base scale
-                const scale = Math.max(0.3, Math.min(1.5, baseScale));
-                label.scale.set(12 * scale, 3.2 * scale, 1);
+                const baseScale = Math.sqrt(distance) * 0.25;  // Much smaller base scale
+                const scale = Math.max(0.2, Math.min(1.0, baseScale));
+                label.scale.set(8 * scale, 2.1 * scale, 1);
             });
 
             renderer.render(scene, camera);
