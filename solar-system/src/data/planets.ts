@@ -56,7 +56,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   mercury: {
     id: 'mercury',
     name: 'Mercury',
-    radius: 0.38,
+    radius: 0.13,
     distance: 0.39,
     orbitalPeriod: 88,
     rotationPeriod: 58.6,
@@ -75,7 +75,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   venus: {
     id: 'venus',
     name: 'Venus',
-    radius: 0.95,
+    radius: 0.32,
     distance: 0.72,
     orbitalPeriod: 225,
     rotationPeriod: 243,
@@ -100,7 +100,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   earth: {
     id: 'earth',
     name: 'Earth',
-    radius: 1.0,
+    radius: 0.33,
     distance: 1.0,
     orbitalPeriod: 365.25,
     rotationPeriod: 1.0,
@@ -133,7 +133,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   mars: {
     id: 'mars',
     name: 'Mars',
-    radius: 0.53,
+    radius: 0.18,
     distance: 1.52,
     orbitalPeriod: 687,
     rotationPeriod: 1.03,
@@ -159,7 +159,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   jupiter: {
     id: 'jupiter',
     name: 'Jupiter',
-    radius: 11.2,
+    radius: 3.73,
     distance: 5.2,
     orbitalPeriod: 4333,
     rotationPeriod: 0.41,
@@ -179,7 +179,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   saturn: {
     id: 'saturn',
     name: 'Saturn',
-    radius: 9.45,
+    radius: 3.15,
     distance: 9.54,
     orbitalPeriod: 10759,
     rotationPeriod: 0.45,
@@ -195,8 +195,8 @@ export const PLANETS: Record<string, PlanetConfig> = {
     },
     features: {
       rings: {
-        innerRadius: 1.2,
-        outerRadius: 2.3,
+        innerRadius: 0.4,
+        outerRadius: 0.77,
         texture: '/assets/planets/saturn_rings.png',
       },
     },
@@ -205,7 +205,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   uranus: {
     id: 'uranus',
     name: 'Uranus',
-    radius: 4.0,
+    radius: 1.33,
     distance: 19.19,
     orbitalPeriod: 30687,
     rotationPeriod: 0.72,
@@ -230,7 +230,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
   neptune: {
     id: 'neptune',
     name: 'Neptune',
-    radius: 3.88,
+    radius: 1.29,
     distance: 30.07,
     orbitalPeriod: 60190,
     rotationPeriod: 0.67,
@@ -256,7 +256,7 @@ export const PLANETS: Record<string, PlanetConfig> = {
 export const SUN_CONFIG = {
   id: 'sun',
   name: 'Sun',
-  radius: 20,
+  radius: 4,
   color: '#FDB813',
   emissiveIntensity: 2.0,
   textures: {
@@ -267,7 +267,7 @@ export const SUN_CONFIG = {
 export const MOON_CONFIG = {
   id: 'moon',
   name: 'Moon',
-  radius: 0.27,
+  radius: 0.09,
   distance: 0.00257, // From Earth in AU
   orbitalPeriod: 27.3,
   color: '#9C9C9C',

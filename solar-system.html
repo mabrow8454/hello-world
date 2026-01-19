@@ -389,7 +389,7 @@
         const PLANETS = {
             mercury: {
                 name: 'Mercury',
-                radius: 0.383,  // Actual radius relative to Earth
+                radius: 0.128,  // Scaled for realistic orbital view
                 semiMajorAxis: 5.8,      // 0.387 AU scaled
                 eccentricity: 0.2056,     // Real eccentricity
                 inclination: 7.005,       // degrees
@@ -403,7 +403,7 @@
             },
             venus: {
                 name: 'Venus',
-                radius: 0.949,  // Actual radius relative to Earth
+                radius: 0.316,  // Scaled for realistic orbital view
                 semiMajorAxis: 10.8,
                 eccentricity: 0.0068,
                 inclination: 3.395,
@@ -417,7 +417,7 @@
             },
             earth: {
                 name: 'Earth',
-                radius: 1.000,  // Reference: Earth radius
+                radius: 0.333,  // Scaled for realistic orbital view
                 semiMajorAxis: 15.0,      // 1.000 AU - reference
                 eccentricity: 0.0167,
                 inclination: 0.000,       // Reference plane
@@ -431,7 +431,7 @@
             },
             mars: {
                 name: 'Mars',
-                radius: 0.532,  // Actual radius relative to Earth
+                radius: 0.177,  // Scaled for realistic orbital view
                 semiMajorAxis: 22.9,
                 eccentricity: 0.0934,
                 inclination: 1.850,
@@ -445,7 +445,7 @@
             },
             jupiter: {
                 name: 'Jupiter',
-                radius: 11.21,  // Actual radius relative to Earth
+                radius: 3.737,  // Scaled for realistic orbital view
                 semiMajorAxis: 78.0,
                 eccentricity: 0.0489,
                 inclination: 1.303,
@@ -459,7 +459,7 @@
             },
             saturn: {
                 name: 'Saturn',
-                radius: 9.45,  // Actual radius relative to Earth
+                radius: 3.15,  // Scaled for realistic orbital view
                 semiMajorAxis: 143.1,
                 eccentricity: 0.0565,
                 inclination: 2.485,
@@ -473,7 +473,7 @@
             },
             uranus: {
                 name: 'Uranus',
-                radius: 4.01,  // Actual radius relative to Earth
+                radius: 1.337,  // Scaled for realistic orbital view
                 semiMajorAxis: 287.9,
                 eccentricity: 0.0457,
                 inclination: 0.773,
@@ -487,7 +487,7 @@
             },
             neptune: {
                 name: 'Neptune',
-                radius: 3.88,  // Actual radius relative to Earth
+                radius: 1.293,  // Scaled for realistic orbital view
                 semiMajorAxis: 451.0,
                 eccentricity: 0.0113,
                 inclination: 1.770,
@@ -507,7 +507,7 @@
             moon: {
                 name: 'Moon',
                 parent: 'earth',
-                radius: 0.27,  // Relative to Earth
+                radius: 0.09,  // Scaled for realistic orbital view
                 semiMajorAxis: 0.0384,  // 384,400 km = 0.00257 AU scaled to 15 units/AU
                 eccentricity: 0.0549,
                 inclination: 5.145,  // degrees relative to ecliptic
@@ -520,7 +520,7 @@
             phobos: {
                 name: 'Phobos',
                 parent: 'mars',
-                radius: 0.02,
+                radius: 0.007,
                 semiMajorAxis: 0.0094,  // 9,376 km
                 eccentricity: 0.0151,
                 inclination: 1.093,
@@ -533,7 +533,7 @@
             deimos: {
                 name: 'Deimos',
                 parent: 'mars',
-                radius: 0.015,
+                radius: 0.005,
                 semiMajorAxis: 0.0235,  // 23,463 km
                 eccentricity: 0.0002,
                 inclination: 0.93,
@@ -546,7 +546,7 @@
             io: {
                 name: 'Io',
                 parent: 'jupiter',
-                radius: 0.29,
+                radius: 0.097,
                 semiMajorAxis: 0.0422,  // 421,700 km
                 eccentricity: 0.0041,
                 inclination: 0.05,
@@ -559,7 +559,7 @@
             europa: {
                 name: 'Europa',
                 parent: 'jupiter',
-                radius: 0.245,
+                radius: 0.082,
                 semiMajorAxis: 0.0671,  // 671,000 km
                 eccentricity: 0.0094,
                 inclination: 0.47,
@@ -572,7 +572,7 @@
             ganymede: {
                 name: 'Ganymede',
                 parent: 'jupiter',
-                radius: 0.413,
+                radius: 0.138,
                 semiMajorAxis: 0.107,  // 1,070,000 km
                 eccentricity: 0.0013,
                 inclination: 0.20,
@@ -585,7 +585,7 @@
             callisto: {
                 name: 'Callisto',
                 parent: 'jupiter',
-                radius: 0.378,
+                radius: 0.126,
                 semiMajorAxis: 0.188,  // 1,880,000 km
                 eccentricity: 0.0074,
                 inclination: 0.19,
@@ -598,7 +598,7 @@
             titan: {
                 name: 'Titan',
                 parent: 'saturn',
-                radius: 0.404,
+                radius: 0.135,
                 semiMajorAxis: 0.122,  // 1,220,000 km
                 eccentricity: 0.0288,
                 inclination: 0.28,
@@ -611,7 +611,7 @@
             rhea: {
                 name: 'Rhea',
                 parent: 'saturn',
-                radius: 0.12,
+                radius: 0.013,
                 semiMajorAxis: 0.0527,  // 527,000 km
                 eccentricity: 0.0010,
                 inclination: 0.35,
@@ -624,7 +624,7 @@
             enceladus: {
                 name: 'Enceladus',
                 parent: 'saturn',
-                radius: 0.04,
+                radius: 0.013,
                 semiMajorAxis: 0.0238,  // 238,000 km
                 eccentricity: 0.0047,
                 inclination: 0.009,
@@ -637,7 +637,7 @@
             titania: {
                 name: 'Titania',
                 parent: 'uranus',
-                radius: 0.124,
+                radius: 0.041,
                 semiMajorAxis: 0.0436,  // 436,000 km
                 eccentricity: 0.0011,
                 inclination: 0.34,
@@ -650,7 +650,7 @@
             oberon: {
                 name: 'Oberon',
                 parent: 'uranus',
-                radius: 0.119,
+                radius: 0.040,
                 semiMajorAxis: 0.0584,  // 584,000 km
                 eccentricity: 0.0014,
                 inclination: 0.07,
@@ -663,7 +663,7 @@
             triton: {
                 name: 'Triton',
                 parent: 'neptune',
-                radius: 0.212,
+                radius: 0.071,
                 semiMajorAxis: 0.0355,  // 355,000 km
                 eccentricity: 0.000016,
                 inclination: 156.885,  // Retrograde orbit!
@@ -718,9 +718,9 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        // Sun (scaled down for visibility, but still largest object)
-        // Real Sun is 109x Earth, but we scale to ~15x for visualization
-        const sunGeometry = new THREE.SphereGeometry(15, 32, 32);
+        // Sun (scaled down for visibility relative to orbital distances)
+        // Real Sun is 109x Earth radius, but orbital scales require smaller Sun for realistic view
+        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
             color: 0xFDB813,
             emissive: 0xFDB813,
