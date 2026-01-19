@@ -330,6 +330,14 @@
         </div>
         <p id="planetDesc"></p>
         <div id="planetStats"></div>
+        <div id="moonsView" style="display: none; margin-top: 12px;">
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-align: center;">Current Moon Positions</div>
+            <canvas id="moonsCanvas" width="260" height="100" style="width: 100%; border-radius: 8px; background: rgba(0,0,0,0.3);"></canvas>
+        </div>
+        <div id="skyVisibility" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px;">Sky Visibility Now</div>
+            <div id="skyVisibilityContent"></div>
+        </div>
     </div>
 
     <div class="hint">Drag to rotate • Scroll to zoom • Click planets to focus</div>
@@ -1037,6 +1045,158 @@
             planetListEl.appendChild(item);
         });
 
+        // Draw moons diagram for planets with moons
+        function drawMoonsDiagram(planetId) {
+            const moonsView = document.getElementById('moonsView');
+            const canvas = document.getElementById('moonsCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Find moons for this planet
+            const planetMoons = Object.keys(MOONS).filter(moonId => MOONS[moonId].parent === planetId);
+
+            if (planetMoons.length === 0) {
+                moonsView.style.display = 'none';
+                return;
+            }
+
+            moonsView.style.display = 'block';
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw center line
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Draw planet in center
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const planetRadius = 12;
+
+            ctx.fillStyle = PLANETS[planetId].color;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, planetRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw moons
+            const scale = 60;  // pixels per unit distance
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+
+            planetMoons.forEach(moonId => {
+                const moon = MOONS[moonId];
+                const moonMesh = moonMeshes[moonId];
+                const parentMesh = planetMeshes[planetId];
+
+                // Calculate moon's position relative to parent planet
+                const dx = moonMesh.position.x - parentMesh.position.x;
+                const dz = moonMesh.position.z - parentMesh.position.z;
+
+                // Project onto viewing plane (use x as horizontal distance)
+                const moonX = centerX + dx * scale;
+                const moonY = centerY;  // Keep on center line for simple view
+
+                // Draw moon
+                const moonRadius = Math.max(2, moon.radius * 20);  // Scaled up for visibility
+                ctx.fillStyle = moon.color;
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw label
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillText(moon.name, moonX, moonY - moonRadius - 4);
+            });
+        }
+
+        // Calculate sky visibility (altitude/azimuth) for planets
+        function calculateSkyVisibility(date) {
+            const skyVisibility = document.getElementById('skyVisibility');
+            const skyContent = document.getElementById('skyVisibilityContent');
+
+            // Get user's location (default to mid-latitude if not available)
+            let userLat = 40;  // Default latitude
+            let userLon = -95;  // Default longitude
+
+            // Try to get geolocation
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    userLat = position.coords.latitude;
+                    userLon = position.coords.longitude;
+                }, () => {
+                    // Use defaults if geolocation fails
+                });
+            }
+
+            // Calculate for each planet
+            const visiblePlanets = [];
+
+            Object.keys(PLANETS).forEach(id => {
+                const mesh = planetMeshes[id];
+                const pos = mesh.position;
+
+                // Convert 3D position to RA/Dec (simplified)
+                const distance = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+                const dec = Math.asin(pos.y / distance) * 180 / Math.PI;
+                const ra = Math.atan2(pos.z, pos.x) * 180 / Math.PI;
+
+                // Calculate Local Sidereal Time
+                const jd = toJulianDate(date);
+                const jd2000 = 2451545.0;
+                const T = (jd - jd2000) / 36525;
+                const gmst = 280.46061837 + 360.98564736629 * (jd - jd2000) + T * T * (0.000387933 - T / 38710000);
+                const lst = (gmst + userLon) % 360;
+
+                // Calculate hour angle and altitude
+                const ha = (lst - ra + 360) % 360;
+                const haRad = ha * Math.PI / 180;
+                const decRad = dec * Math.PI / 180;
+                const latRad = userLat * Math.PI / 180;
+
+                const alt = Math.asin(
+                    Math.sin(decRad) * Math.sin(latRad) +
+                    Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad)
+                ) * 180 / Math.PI;
+
+                const az = Math.atan2(
+                    -Math.cos(decRad) * Math.cos(latRad) * Math.sin(haRad),
+                    Math.sin(decRad) - Math.sin(latRad) * Math.sin(alt * Math.PI / 180)
+                ) * 180 / Math.PI;
+
+                if (alt > 0) {  // Above horizon
+                    visiblePlanets.push({
+                        id,
+                        name: PLANETS[id].name,
+                        altitude: alt.toFixed(0),
+                        azimuth: ((az + 360) % 360).toFixed(0),
+                        color: PLANETS[id].color
+                    });
+                }
+            });
+
+            // Sort by altitude (highest first)
+            visiblePlanets.sort((a, b) => b.altitude - a.altitude);
+
+            if (visiblePlanets.length > 0) {
+                skyVisibility.style.display = 'block';
+                skyContent.innerHTML = visiblePlanets.map(p => `
+                    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${p.color};"></div>
+                            <span style="font-size: 13px;">${p.name}</span>
+                        </div>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.6);">Alt ${p.altitude}°</span>
+                    </div>
+                `).join('');
+            } else {
+                skyVisibility.style.display = 'none';
+            }
+        }
+
         function selectPlanet(id) {
             selectedPlanet = id === 'sun' ? null : id;  // Sun = no planet selection for camera
 
@@ -1085,7 +1245,13 @@
                         <span class="stat-value">${planet.rotation.toFixed(2)} Earth days</span>
                     </div>
                 `;
+
+                // Draw moons diagram if planet has moons
+                drawMoonsDiagram(id);
             }
+
+            // Calculate and show sky visibility
+            calculateSkyVisibility(currentDate);
         }
 
         // Hamburger menu toggle
@@ -1445,6 +1611,11 @@
                 const scale = Math.max(0.2, Math.min(1.0, baseScale));
                 label.scale.set(8 * scale, 2.1 * scale, 1);
             });
+
+            // Update moons diagram if a planet is selected
+            if (selectedPlanet && document.getElementById('moonsView').style.display !== 'none') {
+                drawMoonsDiagram(selectedPlanet);
+            }
 
             renderer.render(scene, camera);
         }
