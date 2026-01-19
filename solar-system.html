@@ -287,16 +287,16 @@
     <div id="container"></div>
 
     <!-- Hamburger menu button -->
-    <button id="hamburgerBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1001; width: 48px; height: 48px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s;">
+    <button id="hamburgerBtn" style="position: fixed; top: 20px; left: 20px; z-index: 1001; width: 48px; height: 48px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: all 0.3s;">
         <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
         <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
         <span style="width: 24px; height: 2px; background: white; transition: all 0.3s;"></span>
     </button>
 
     <div class="ui-panel planet-list" id="planetListPanel" style="transform: translateX(calc(-100% - 20px)); transition: transform 0.3s;">
-        <div class="panel-header">
-            <h2 class="planet-list-title">🪐 Solar System</h2>
-            <button class="minimize-btn" id="closePlanets" style="border-radius: 8px; width: 36px;">✕</button>
+        <div class="panel-header" style="justify-content: center; position: relative;">
+            <h2 class="planet-list-title" style="text-align: center;">🪐 Solar System</h2>
+            <button class="minimize-btn" id="closePlanets" style="border-radius: 8px; width: 36px; position: absolute; right: 0;">✕</button>
         </div>
         <div class="planet-items" id="planetList"></div>
     </div>
@@ -1104,6 +1104,43 @@
         const currentDateDisplay = document.getElementById('currentDateDisplay');
         const timeSpeedDisplay = document.getElementById('timeSpeedDisplay');
 
+        // Convert slider position to time speed with gradual progression
+        function calculateTimeSpeed(sliderPosition) {
+            const absPos = Math.abs(sliderPosition);
+
+            if (absPos < 0.05) return 0;  // Dead zone
+
+            let speed;
+            // Gradual progression: mins → hours → days → weeks → months → years
+            if (absPos < 0.15) {
+                // Minutes per second: 1-60 mins/s = 0.0007-0.042 days/s
+                const t = (absPos - 0.05) / 0.1;  // 0 to 1
+                speed = 0.0007 + t * 0.0413;  // 1 min/s to 60 min/s
+            } else if (absPos < 0.3) {
+                // Hours per second: 1-24 hours/s = 0.042-1 days/s
+                const t = (absPos - 0.15) / 0.15;  // 0 to 1
+                speed = 0.042 + t * 0.958;
+            } else if (absPos < 0.5) {
+                // Days per second: 1-7 days/s
+                const t = (absPos - 0.3) / 0.2;
+                speed = 1 + t * 6;
+            } else if (absPos < 0.7) {
+                // Weeks per second: 1-4 weeks/s = 7-28 days/s
+                const t = (absPos - 0.5) / 0.2;
+                speed = 7 + t * 21;
+            } else if (absPos < 0.85) {
+                // Months per second: 1-12 months/s = 30-365 days/s
+                const t = (absPos - 0.7) / 0.15;
+                speed = 30 + t * 335;
+            } else {
+                // Years per second: 1-10 years/s = 365-3650 days/s
+                const t = (absPos - 0.85) / 0.15;
+                speed = 365 + t * 3285;
+            }
+
+            return Math.sign(sliderPosition) * speed;
+        }
+
         function updateTimeSpeedDisplay() {
             if (isPaused) {
                 timeSpeedDisplay.textContent = 'Paused';
@@ -1112,10 +1149,33 @@
                 const absSpeed = Math.abs(timeSpeed);
                 const direction = timeSpeed > 0 ? '→' : '←';
                 let speedText = '';
-                if (absSpeed < 2) speedText = '1 day/s';
-                else if (absSpeed < 10) speedText = `${absSpeed.toFixed(0)} days/s`;
-                else if (absSpeed < 100) speedText = `${(absSpeed / 7).toFixed(0)} weeks/s`;
-                else speedText = `${(absSpeed / 30).toFixed(0)} months/s`;
+
+                // Display speed in appropriate units
+                if (absSpeed < 0.042) {
+                    // Minutes per second
+                    const mins = Math.round(absSpeed * 1440);  // 1440 mins in a day
+                    speedText = `${mins} min/s`;
+                } else if (absSpeed < 1) {
+                    // Hours per second
+                    const hours = Math.round(absSpeed * 24);
+                    speedText = `${hours} hr/s`;
+                } else if (absSpeed < 7) {
+                    // Days per second
+                    speedText = `${absSpeed.toFixed(1)} days/s`;
+                } else if (absSpeed < 30) {
+                    // Weeks per second
+                    const weeks = Math.round(absSpeed / 7);
+                    speedText = `${weeks} week/s`;
+                } else if (absSpeed < 365) {
+                    // Months per second
+                    const months = Math.round(absSpeed / 30);
+                    speedText = `${months} mo/s`;
+                } else {
+                    // Years per second
+                    const years = (absSpeed / 365).toFixed(1);
+                    speedText = `${years} yr/s`;
+                }
+
                 timeSpeedDisplay.textContent = `${direction} ${speedText}`;
                 timeSpeedDisplay.style.color = timeSpeed > 0 ? '#4CAF50' : '#FF9800';
             }
@@ -1123,7 +1183,9 @@
 
         function formatDateDisplay(date) {
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} ${hours}:${minutes}`;
         }
 
         function formatDateForInput(date) {
@@ -1185,16 +1247,9 @@
             const handlePosition = 50 + (sliderDragPosition * 40);  // 50% ± 40%
             sliderHandle.style.left = `${handlePosition}%`;
 
-            // Calculate time speed based on drag distance
-            if (Math.abs(sliderDragPosition) < 0.05) {
-                isPaused = true;
-                timeSpeed = 0;
-            } else {
-                isPaused = false;
-                // Exponential speed scaling: slight drag = slow, far drag = fast
-                const absPos = Math.abs(sliderDragPosition);
-                timeSpeed = Math.sign(sliderDragPosition) * Math.pow(absPos * 100, 1.5);
-            }
+            // Calculate time speed with gradual progression
+            timeSpeed = calculateTimeSpeed(sliderDragPosition);
+            isPaused = (timeSpeed === 0);
 
             updateTimeSpeedDisplay();
         });
@@ -1211,14 +1266,9 @@
             const handlePosition = 50 + (sliderDragPosition * 40);
             sliderHandle.style.left = `${handlePosition}%`;
 
-            // Calculate time speed
-            if (Math.abs(sliderDragPosition) < 0.05) {
-                isPaused = true;
-                timeSpeed = 0;
-            } else {
-                isPaused = false;
-                timeSpeed = Math.sign(sliderDragPosition) * Math.pow(Math.abs(sliderDragPosition) * 100, 1.5);
-            }
+            // Calculate time speed with gradual progression
+            timeSpeed = calculateTimeSpeed(sliderDragPosition);
+            isPaused = (timeSpeed === 0);
 
             updateTimeSpeedDisplay();
         }, { passive: false });
