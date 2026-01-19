@@ -192,6 +192,14 @@
             z-index: 1002;  /* Above hamburger menu */
         }
 
+        .info-panel.minimized {
+            max-width: 200px;
+        }
+
+        .info-panel.minimized > *:not(.panel-header) {
+            display: none;
+        }
+
         .info-panel h3 {
             font-size: 20px;
             margin-bottom: 8px;
@@ -710,8 +718,9 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        // Sun
-        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
+        // Sun (scaled down for visibility, but still largest object)
+        // Real Sun is 109x Earth, but we scale to ~15x for visualization
+        const sunGeometry = new THREE.SphereGeometry(15, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
             color: 0xFDB813,
             emissive: 0xFDB813,
@@ -721,7 +730,7 @@
         scene.add(sun);
 
         // Sun glow
-        const glowGeometry = new THREE.SphereGeometry(3.2, 32, 32);
+        const glowGeometry = new THREE.SphereGeometry(16, 32, 32);
         const glowMaterial = new THREE.MeshBasicMaterial({
             color: 0xFDB813,
             transparent: true,
@@ -921,7 +930,7 @@
 
             // Create moon sphere with accurate size but minimum for visibility
             // moon.radius is already relative to Earth (same as planet radii)
-            const moonSize = Math.max(0.08, moon.radius);  // Minimum 0.08 units for visibility
+            const moonSize = Math.max(0.3, moon.radius);  // Minimum 0.3 units for visibility
 
             const geometry = new THREE.SphereGeometry(moonSize, 16, 16);
             const material = new THREE.MeshStandardMaterial({
@@ -1083,8 +1092,8 @@
             ctx.fill();
 
             // Draw moons
-            const scale = 60;  // pixels per unit distance
-            ctx.font = '10px Arial';
+            const scale = 700;  // pixels per unit distance (high scale for small moon orbits)
+            ctx.font = '9px Arial';
             ctx.textAlign = 'center';
 
             planetMoons.forEach(moonId => {
