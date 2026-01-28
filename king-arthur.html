@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King Arthur and the Knights of the Round Table</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #f5f1e8;
+            --text-color: #333;
+            --page-bg: #fffef9;
+            --border-color: #d4c9b5;
+            --header-bg: #2d2d2d;
+            --accent-color: #1a73e8;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #d4d4d4;
+            --page-bg: #262626;
+            --border-color: #404040;
+            --header-bg: #0d0d0d;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        .sepia-mode {
+            --bg-color: #f4ecd8;
+            --text-color: #5b4636;
+            --page-bg: #f9f3e3;
+            --border-color: #c9b99a;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            background: var(--header-bg);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .header.visible {
+            transform: translateY(0);
+        }
+
+        .header h1 {
+            font-size: 1rem;
+            font-weight: normal;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 50%;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Book Container */
+        .book-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px 100px;
+            min-height: 100vh;
+        }
+
+        /* Page Content */
+        .page {
+            background: var(--page-bg);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 2px 20px var(--shadow);
+            min-height: 70vh;
+            line-height: 1.8;
+            position: relative;
+        }
+
+        .chapter-title {
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: normal;
+        }
+
+        .chapter-number {
+            font-size: 0.7em;
+            display: block;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #888;
+        }
+
+        .content {
+            text-align: justify;
+            font-size: 1.1em;
+        }
+
+        .content p {
+            margin-bottom: 1.5em;
+            text-indent: 1.5em;
+        }
+
+        .content p:first-of-type {
+            text-indent: 0;
+        }
+
+        .content p:first-of-type::first-letter {
+            font-size: 3em;
+            float: left;
+            line-height: 1;
+            padding-right: 10px;
+            color: #8b4513;
+        }
+
+        .dark-mode .content p:first-of-type::first-letter {
+            color: #d4a574;
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--header-bg);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 0.85rem;
+            min-width: 45px;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: var(--page-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            display: none;
+            z-index: 99;
+            min-width: 250px;
+        }
+
+        .settings-panel.visible {
+            display: block;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+
+        .theme-btn.light {
+            background: #fffef9;
+        }
+
+        .theme-btn.sepia {
+            background: #f9f3e3;
+        }
+
+        .theme-btn.dark {
+            background: #262626;
+        }
+
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .font-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            background: var(--page-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .font-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .font-size-display {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* Table of Contents */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: var(--page-bg);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 101;
+            overflow-y: auto;
+        }
+
+        .toc-panel.visible {
+            transform: translateX(0);
+        }
+
+        .toc-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toc-header h2 {
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 10px 0;
+        }
+
+        .toc-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .toc-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .toc-item.active {
+            border-left-color: var(--accent-color);
+            background: rgba(26, 115, 232, 0.1);
+        }
+
+        .toc-item .chapter-num {
+            font-size: 0.8em;
+            color: #888;
+            display: block;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Bookmark indicator */
+        .bookmark-indicator {
+            position: absolute;
+            top: 0;
+            right: 30px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #e74c3c;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bookmark-indicator.active {
+            opacity: 1;
+        }
+
+        /* Touch areas for page turning */
+        .touch-area {
+            position: fixed;
+            top: 50px;
+            bottom: 60px;
+            width: 20%;
+            z-index: 50;
+            cursor: pointer;
+        }
+
+        .touch-area.left {
+            left: 0;
+        }
+
+        .touch-area.right {
+            right: 0;
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            transition: opacity 0.5s;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-screen h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .loading-screen p {
+            color: #888;
+        }
+
+        /* Book cover for loading */
+        .book-cover {
+            width: 200px;
+            height: 280px;
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-left: 8px solid #5a3a1f;
+        }
+
+        .book-cover h2 {
+            color: #ffd700;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .book-cover .sword {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .page {
+                padding: 25px;
+            }
+
+            .chapter-title {
+                font-size: 1.4em;
+            }
+
+            .content {
+                font-size: 1em;
+            }
+
+            .header h1 {
+                font-size: 0.9rem;
+            }
+
+            .toc-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="book-cover">
+            <div class="sword">&#9876;</div>
+            <h2>King Arthur and the Knights of the Round Table</h2>
+        </div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="header-btn" id="tocBtn" title="Table of Contents">&#9776;</button>
+        <h1 id="headerTitle">King Arthur</h1>
+        <div class="header-controls">
+            <button class="header-btn" id="bookmarkBtn" title="Bookmark">&#9734;</button>
+            <button class="header-btn" id="settingsBtn" title="Settings">&#9881;</button>
+        </div>
+    </header>
+
+    <!-- Table of Contents -->
+    <div class="overlay" id="overlay"></div>
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h2>Contents</h2>
+            <button class="close-btn" id="closeToc">&times;</button>
+        </div>
+        <ul class="toc-list" id="tocList"></ul>
+    </nav>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-section">
+            <div class="settings-label">Theme</div>
+            <div class="theme-options">
+                <button class="theme-btn light active" data-theme="light" title="Light"></button>
+                <button class="theme-btn sepia" data-theme="sepia" title="Sepia"></button>
+                <button class="theme-btn dark" data-theme="dark" title="Dark"></button>
+            </div>
+        </div>
+        <div class="settings-section">
+            <div class="settings-label">Font Size</div>
+            <div class="font-size-controls">
+                <button class="font-btn" id="fontDecrease">A-</button>
+                <span class="font-size-display" id="fontSizeDisplay">100%</span>
+                <button class="font-btn" id="fontIncrease">A+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Touch Areas -->
+    <div class="touch-area left" id="touchLeft"></div>
+    <div class="touch-area right" id="touchRight"></div>
+
+    <!-- Book Content -->
+    <main class="book-container">
+        <article class="page" id="page">
+            <div class="bookmark-indicator" id="bookmarkIndicator"></div>
+            <div id="chapterContent"></div>
+            <nav class="nav-container">
+                <button class="nav-btn" id="prevBtn">&#8592; Previous</button>
+                <span class="page-indicator" id="pageIndicator"></span>
+                <button class="nav-btn" id="nextBtn">Next &#8594;</button>
+            </nav>
+        </article>
+    </main>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressText">0%</span>
+    </div>
+
+    <script>
+        // Book content - King Arthur and the Knights of the Round Table
+        const bookContent = [
+            {
+                title: "The Sword in the Stone",
+                number: "Chapter 1",
+                content: `<p>Long ago, in the land of Britain, there lived a great king named Uther Pendragon. He was a strong and brave king, but he had no son to rule after him. This made him very sad.</p>
+                <p>One day, the wise wizard Merlin came to see the king. Merlin had long white hair and a long white beard. His eyes were bright and full of magic.</p>
+                <p>"Do not worry, King Uther," said Merlin. "You will have a son. But you must give the boy to me. I will keep him safe and teach him many things."</p>
+                <p>The king did not want to give away his son. But he trusted Merlin. "Very well," he said. "I will do as you say."</p>
+                <p>Soon, a baby boy was born. He had bright eyes and golden hair. The king named him Arthur. That same night, Merlin came to the castle. He took the baby to a good knight named Sir Ector.</p>
+                <p>"Raise this child as your own," Merlin told Sir Ector. "Do not tell anyone who he really is. One day, he will be king."</p>
+                <p>Sir Ector loved little Arthur. He raised him with his own son, Kay. The two boys grew up together like brothers. Arthur was kind and brave. Kay was proud but loyal.</p>
+                <p>When Arthur was fifteen years old, King Uther died. The kingdom had no king. The lords and knights began to fight. Everyone wanted to be king. The land was in great trouble.</p>
+                <p>Then a strange thing happened. On Christmas morning, a great stone appeared in the churchyard. A beautiful sword stuck out of the stone. On the sword were these words: "Whoever pulls this sword from the stone is the true King of Britain."</p>
+                <p>Many strong men tried to pull out the sword. Lords, knights, and warriors all came to try. But no one could move the sword. It stayed in the stone as if it grew there.</p>
+                <p>"We will have a tournament," said the lords. "Whoever pulls the sword will be our king."</p>
+                <p>Sir Ector brought his son Kay to the tournament. Arthur came too. Kay was going to fight for the first time. He was very excited.</p>
+                <p>But when they arrived, Kay discovered he had forgotten his sword at home. "Arthur!" he said. "Go back and get my sword. Quickly!"</p>
+                <p>Arthur rode fast to get the sword. But the house was locked. Everyone had gone to the tournament. Arthur did not know what to do.</p>
+                <p>Then he saw the sword in the stone. "I will borrow this one," he thought. He walked up to the stone. He put his hand on the sword. He pulled. The sword came out easily.</p>
+                <p>Arthur rode back to Kay. "Here is a sword," he said. Kay looked at the sword. His eyes grew wide. "Father!" he cried. "Look! The sword from the stone! I am the king!"</p>
+                <p>Sir Ector looked at his son. "Did you pull this sword from the stone?" he asked.</p>
+                <p>Kay wanted to say yes. But he could not lie to his father. "No," he said sadly. "Arthur gave it to me."</p>
+                <p>Sir Ector took Arthur back to the stone. "Put the sword back," he said. Arthur put it back easily. Then Sir Ector tried to pull it out. He could not. Kay tried. He could not. Many knights tried. No one could pull it out.</p>
+                <p>"Now you try, Arthur," said Sir Ector.</p>
+                <p>Arthur pulled the sword. It came out easily, like a knife from butter. All the people gasped. Sir Ector knelt before Arthur. Kay knelt too.</p>
+                <p>"You are our true king," said Sir Ector. "I must tell you the truth. You are not my son. The wizard Merlin brought you to me when you were a baby. You are the son of King Uther Pendragon."</p>
+                <p>Arthur was amazed. He was a king's son! He looked at the sword in his hand. It shone like fire in the sun.</p>
+                <p>Some lords were angry. "How can this boy be king?" they said. "He is just a child!" But the sword had chosen Arthur. No one else could pull it from the stone. At last, everyone agreed. Arthur was crowned King of Britain.</p>`
+            },
+            {
+                title: "The Wizard Merlin",
+                number: "Chapter 2",
+                content: `<p>After Arthur became king, Merlin came to help him. The old wizard knew everything about the past and the future. He had magic powers that no one could understand.</p>
+                <p>"You will be a great king, Arthur," said Merlin. "But you must be wise. You must be fair. You must help the weak and fight the strong who do wrong."</p>
+                <p>Arthur listened to everything Merlin said. The wizard became his teacher and his friend. They talked for hours about how to rule the kingdom.</p>
+                <p>But not everyone was happy. Some kings and lords did not want Arthur to rule. They gathered their armies. They marched to fight young King Arthur.</p>
+                <p>"Do not worry," said Merlin. "I will help you."</p>
+                <p>The battle was fierce. Arthur fought bravely with his sword. But there were too many enemies. The sword broke in two!</p>
+                <p>Arthur was afraid. Without a sword, how could he win? But Merlin used his magic. A thick mist covered the battlefield. Arthur's enemies could not see. They became confused and ran away.</p>
+                <p>"You saved me," said Arthur. "But now I have no sword."</p>
+                <p>Merlin smiled his mysterious smile. "Come with me," he said. "I know where you can find a new sword. A better sword. The best sword in all the world."</p>
+                <p>Merlin took Arthur to a lake deep in the forest. The water was dark and still. Mist floated above it like smoke.</p>
+                <p>"Watch," said Merlin.</p>
+                <p>Arthur watched. Slowly, a hand rose from the water. It was a woman's hand, pale as snow. In it was a sword. The most beautiful sword Arthur had ever seen. It glowed with a blue light.</p>
+                <p>"That is Excalibur," said Merlin. "It was made by magic. No sword can break it. No enemy can stand against it."</p>
+                <p>"How can I get it?" asked Arthur.</p>
+                <p>"See that boat?" Merlin pointed to a small boat by the shore. "Row to the sword and take it. The Lady of the Lake will give it to you."</p>
+                <p>Arthur rowed the boat across the dark water. When he reached the hand, he took the sword. The hand let go and sank beneath the water.</p>
+                <p>Arthur looked at Excalibur. The blade was bright silver. The handle was gold with precious stones. It was light in his hand but strong as steel.</p>
+                <p>"Thank you," Arthur called to the lake. He did not know if anyone heard him.</p>
+                <p>"The sword is very special," said Merlin when Arthur returned. "But the scabbard is even more special. While you wear the scabbard, you will never bleed from any wound. Guard it well."</p>
+                <p>Arthur wore Excalibur at his side. He wore the magic scabbard too. With Merlin's help, he won many battles. He brought peace to Britain. The lords who had fought against him now knelt before him.</p>
+                <p>But Merlin knew that his time with Arthur was ending. "I must leave you soon," he told the king.</p>
+                <p>"Leave? Why?" Arthur was sad. He did not want to lose his friend.</p>
+                <p>"I have seen the future," said Merlin. "A beautiful woman will put me under a spell. I will sleep under a great stone forever. I cannot change this. It is my fate."</p>
+                <p>"Fight the spell!" said Arthur. "Use your magic!"</p>
+                <p>Merlin shook his head. "Even I cannot fight fate. But do not worry. I have taught you well. You will be a good king. Remember everything I told you. Be brave. Be fair. Be kind."</p>
+                <p>Soon after, Merlin met a beautiful woman named Nimue. She was one of the Ladies of the Lake. She wanted to learn Merlin's magic. Merlin loved her and taught her many spells.</p>
+                <p>But Nimue was afraid of Merlin's power. One day, she used his own magic against him. She put him under a spell. She sealed him in a cave behind a great stone. There Merlin sleeps to this day.</p>
+                <p>Arthur was very sad when Merlin did not return. But he remembered his teacher's words. He ruled wisely and well. He became the greatest king Britain had ever known.</p>`
+            },
+            {
+                title: "The Round Table",
+                number: "Chapter 3",
+                content: `<p>King Arthur built a great castle called Camelot. It had tall towers and strong walls. It stood on a hill where everyone could see it. Inside were beautiful rooms and a great hall.</p>
+                <p>Arthur married a beautiful princess named Guinevere. She had dark hair and kind eyes. She came from a neighboring kingdom. Her father gave Arthur a wedding present: a great round table.</p>
+                <p>"This table is special," said Guinevere's father. "It has no head and no foot. Everyone who sits at this table is equal. No one is more important than another."</p>
+                <p>Arthur loved the table. "This is perfect," he said. "My knights will sit here with me. We will all be equal. We will make decisions together."</p>
+                <p>The Round Table was very large. One hundred and fifty knights could sit around it. Each seat had a name written in gold letters. The names appeared by magic when the right knight sat down.</p>
+                <p>Arthur gathered the bravest knights in the land. They came from many kingdoms. Each one had done brave deeds. Each one had proved his honor.</p>
+                <p>"Welcome to Camelot," Arthur said to them. "Welcome to the Round Table. Together, we will make Britain a good place. We will protect the weak. We will fight evil. We will seek justice."</p>
+                <p>The knights took an oath. They promised to be brave and true. They promised to help people in need. They promised to never do wrong or evil. They promised to be loyal to King Arthur.</p>
+                <p>Sir Lancelot was the bravest knight. He came from France. He had golden hair and was very handsome. No one could beat him in a fight. He became Arthur's best friend.</p>
+                <p>Sir Gawain was Arthur's nephew. He was strong and proud. His strength grew as the sun rose higher. At noon, he was strongest of all. But when the sun set, he grew weak again.</p>
+                <p>Sir Galahad was the purest knight. He was Lancelot's son. His heart was good and true. He never told lies. He never did wrong. Many said he was perfect.</p>
+                <p>Sir Percival was a simple knight. He grew up in the forest, far from castles and courts. He did not know the rules of knighthood. But his heart was brave and pure.</p>
+                <p>Sir Tristan was a great fighter and poet. He could sing beautiful songs. He was also the best hunter in the land. Sadly, he loved a woman he could not marry.</p>
+                <p>Sir Kay was Arthur's foster brother. Sometimes he was proud and mean. But he was loyal to Arthur. He always stood by the king.</p>
+                <p>Many other knights sat at the Round Table. Sir Bedivere, Sir Bors, Sir Lamorak, Sir Gareth. Each one was brave. Each one had his own story.</p>
+                <p>One seat was always empty. It was called the Siege Perilous, which means the Dangerous Seat. Magic writing said that only the purest knight could sit there. Anyone else would die.</p>
+                <p>"Who will sit in that seat?" the knights asked.</p>
+                <p>"One day, the right knight will come," said Arthur. "Until then, we must wait."</p>
+                <p>The Knights of the Round Table did many great deeds. They rode across the land, helping people. They fought dragons and giants. They rescued prisoners and protected villages.</p>
+                <p>Stories of their adventures spread everywhere. People came from far away to see Camelot. Singers wrote songs about the brave knights. Britain was proud of its king and his knights.</p>
+                <p>Those were the golden days of Camelot. The days when good men fought for what was right. The days when King Arthur and his knights sat together as equals, planning how to make the world better.</p>`
+            },
+            {
+                title: "Sir Lancelot",
+                number: "Chapter 4",
+                content: `<p>Sir Lancelot was the greatest of all the knights. He was tall and strong with golden hair. His eyes were blue like the summer sky. When he fought, no one could beat him. When he spoke, everyone listened.</p>
+                <p>Lancelot came to Camelot from a far country. He wanted to serve King Arthur. He had heard stories of the Round Table. He wanted to be one of its knights.</p>
+                <p>Arthur liked Lancelot immediately. "You are welcome here," said the king. "I can see you are brave and true."</p>
+                <p>Lancelot proved his worth many times. He saved Arthur's life in battle. He defeated the king's enemies. He rescued people in danger. Soon he was the most famous knight in all the land.</p>
+                <p>But Lancelot had a secret. He loved Queen Guinevere. He knew this was wrong. She was his king's wife. But he could not help his feelings.</p>
+                <p>Guinevere loved Lancelot too. She tried not to. She was Arthur's queen. But her heart belonged to Lancelot. This secret love would one day bring great trouble.</p>
+                <p>For now, Lancelot tried to forget his love. He went on many adventures. He hoped that fighting would fill his heart.</p>
+                <p>One day, Lancelot heard about a lady in danger. Her name was Lady Elaine. An evil knight had locked her in a tower of burning brass. The tower was so hot that no one could touch it.</p>
+                <p>"I will save her," said Lancelot.</p>
+                <p>He rode to the tower. He could feel the heat from far away. His horse would not go near it. So Lancelot walked.</p>
+                <p>The heat burned his skin. His armor became hot. But Lancelot did not stop. He reached the tower door. He pushed it open. Inside he found Lady Elaine.</p>
+                <p>"Thank you," she cried. "You saved me!"</p>
+                <p>Lancelot carried her out. As soon as they were free, the tower disappeared. It had been made by magic.</p>
+                <p>Lady Elaine fell in love with Lancelot. But Lancelot's heart belonged to Guinevere. This made Lady Elaine very sad.</p>
+                <p>Another time, Lancelot was captured by an evil queen named Morgan le Fay. She was Arthur's half-sister. She knew magic and used it for evil.</p>
+                <p>"You will marry one of us," Morgan said. Three other queens were with her. "Choose, or you will die."</p>
+                <p>"I will not marry any of you," said Lancelot. "I would rather die."</p>
+                <p>Morgan was angry. She locked Lancelot in a dungeon. But a servant girl helped him escape. She gave him his armor and his sword. Lancelot rode away free.</p>
+                <p>On his way back to Camelot, Lancelot met a knight in black armor. The knight would not let him pass.</p>
+                <p>"Fight me," said the black knight. "Or turn back."</p>
+                <p>Lancelot fought him. The battle lasted all day. At last, Lancelot won. He took off the black knight's helmet. It was his friend, Sir Gawain!</p>
+                <p>"Gawain!" cried Lancelot. "Why did you fight me?"</p>
+                <p>Gawain laughed. "I wanted to test myself against the best knight. Now I know you are truly the greatest."</p>
+                <p>The two knights became even better friends. They rode together back to Camelot. Arthur was happy to see them both.</p>
+                <p>Lancelot had many more adventures. He fought giants and dragons. He broke evil spells. He helped the poor and the weak. Everyone loved him.</p>
+                <p>But his secret love for Guinevere never went away. It waited in his heart like a sleeping dragon. One day it would wake up. And when it did, it would destroy everything.</p>`
+            },
+            {
+                title: "Sir Gawain and the Green Knight",
+                number: "Chapter 5",
+                content: `<p>It was New Year's Day at Camelot. King Arthur held a great feast. All the Knights of the Round Table were there. They ate and drank and told stories.</p>
+                <p>Suddenly, the great doors flew open. A giant knight rode into the hall on a huge horse. But there was something strange about him. He was completely green. His skin was green. His hair was green. His armor was green. Even his horse was green.</p>
+                <p>The Green Knight carried no sword. Instead, he held a great axe. The blade shone like silver.</p>
+                <p>"I come with a challenge," said the Green Knight. His voice was like thunder. "Who will play a game with me?"</p>
+                <p>"What game?" asked Arthur.</p>
+                <p>"A simple game," said the Green Knight. "Someone may strike me once with this axe. But in one year, he must let me strike him back. Who is brave enough?"</p>
+                <p>The knights looked at each other. This was a strange challenge. The axe could cut off a man's head. Who would agree to such a game?</p>
+                <p>Sir Gawain stood up. "I will play your game," he said. "Give me the axe."</p>
+                <p>The Green Knight smiled and handed over the axe. Then he knelt down. He bent his head. "Strike," he said.</p>
+                <p>Gawain lifted the heavy axe. He swung it with all his might. The blade cut through the Green Knight's neck. The green head rolled across the floor.</p>
+                <p>But then an amazing thing happened. The Green Knight did not die. His body stood up. It walked across the room. It picked up its own head!</p>
+                <p>The Green Knight held his head in his hands. The head opened its eyes. The mouth began to speak.</p>
+                <p>"Remember your promise, Sir Gawain. In one year, come to the Green Chapel. There you will take my blow."</p>
+                <p>The Green Knight put his head back on his shoulders. He climbed onto his horse. He rode out of the hall. Everyone was too amazed to stop him.</p>
+                <p>The year passed quickly. Gawain knew he must keep his promise. A knight must always keep his word, even if it means death.</p>
+                <p>On New Year's Day, Gawain left Camelot. He rode through forests and mountains. He asked everyone about the Green Chapel. But no one had heard of it.</p>
+                <p>At last, Gawain came to a castle. A lord welcomed him inside. "Stay here," said the lord. "Rest from your journey. The Green Chapel is very near."</p>
+                <p>Gawain stayed at the castle for three days. The lord went hunting each day. His wife stayed home with Gawain. She was very beautiful. She tried to make Gawain kiss her.</p>
+                <p>Gawain was a true knight. He would not kiss another man's wife. But she was very clever. On the third day, she gave him her green belt.</p>
+                <p>"This belt has magic," she said. "Whoever wears it cannot be killed. Take it, and you will live."</p>
+                <p>Gawain was afraid of the Green Knight's axe. He took the belt and hid it under his clothes.</p>
+                <p>On New Year's Day, Gawain rode to the Green Chapel. It was a dark cave in the hillside. The Green Knight was waiting.</p>
+                <p>"Kneel down," said the Green Knight. "Take my blow as you promised."</p>
+                <p>Gawain knelt. He bent his head. The Green Knight raised his axe.</p>
+                <p>The axe came down. But it only scratched Gawain's neck. A tiny cut appeared. One drop of blood fell.</p>
+                <p>Gawain jumped up. "I took your blow! The game is finished!"</p>
+                <p>The Green Knight laughed. "You are brave, Sir Gawain. But you are not perfect. You took the green belt. You tried to cheat death."</p>
+                <p>Gawain was ashamed. "You are right," he said. "I was afraid. I was not as brave as I thought."</p>
+                <p>"Do not be too hard on yourself," said the Green Knight. "You are only human. You made one small mistake. The scratch on your neck is your punishment. Now go home."</p>
+                <p>Gawain rode back to Camelot. He told everyone what happened. He wore the green belt always. It reminded him to be humble. Even the bravest knight is not perfect.</p>`
+            },
+            {
+                title: "The Quest for the Holy Grail",
+                number: "Chapter 6",
+                content: `<p>One evening, something wonderful happened at Camelot. The knights were sitting at the Round Table. Suddenly, a bright light filled the room. It was brighter than the sun.</p>
+                <p>In the light, they saw a cup. It floated in the air, covered with a white cloth. The cup moved slowly around the table. Then it disappeared.</p>
+                <p>"What was that?" asked the knights.</p>
+                <p>"That was the Holy Grail," said an old man who appeared in the doorway. "It is the cup that Jesus used at the Last Supper. It has great magic. It can heal any wound. It can make food appear. But only the purest knight can find it."</p>
+                <p>The knights were excited. "We will find the Grail!" they cried. "We will bring it back to Camelot!"</p>
+                <p>King Arthur was worried. "If you all leave, who will protect the kingdom?" he asked.</p>
+                <p>But the knights had made up their minds. They took an oath to seek the Holy Grail. One by one, they left Camelot. They rode in different directions. Each one hoped to find the sacred cup.</p>
+                <p>Sir Galahad was the purest knight. He was young and had never done wrong. His heart was completely good. One day, he came to the castle where the Round Table was. He sat in the Siege Perilous, the Dangerous Seat.</p>
+                <p>Everyone gasped. They expected him to die. But Galahad did not die. He was the knight the seat was waiting for. The writing changed to his name.</p>
+                <p>"You are the one," said Arthur. "You will find the Holy Grail."</p>
+                <p>Galahad, Percival, and Bors rode together. They had many adventures. They fought evil knights. They helped people in trouble. They passed every test.</p>
+                <p>Sir Lancelot searched too. But he could not find the Grail. His love for Guinevere was a sin. It made his heart impure.</p>
+                <p>One night, Lancelot came to a chapel. Inside, he saw the Holy Grail. It glowed with beautiful light. Lancelot reached out to touch it.</p>
+                <p>Fire came from the Grail. It struck Lancelot. He fell down as if dead. He lay there for many days. When he woke up, he was very sad.</p>
+                <p>"I cannot touch the Grail," he said. "My heart is not pure enough. My love for the queen has cost me this great prize."</p>
+                <p>But Galahad, Percival, and Bors succeeded. They came to a castle called Corbenic. The Holy Grail was there. An old king guarded it. He had been wounded long ago and could not die.</p>
+                <p>"You have come at last," said the king. "The Grail will heal me now."</p>
+                <p>Galahad took the Grail. He healed the old king. The king smiled and closed his eyes. At last, he could rest.</p>
+                <p>Then Galahad looked into the Grail. He saw wonderful things. He saw heaven and angels. He saw the face of God.</p>
+                <p>"I have seen everything," said Galahad. "Now I can die happy."</p>
+                <p>A light came down from heaven. It took Galahad up to God. The purest knight had found the greatest treasure.</p>
+                <p>Percival stayed at the castle. He became a holy man. He spent his life praying and helping others.</p>
+                <p>Only Sir Bors returned to Camelot. He told everyone what happened. The knights listened in wonder. The Holy Grail was the greatest adventure of all.</p>
+                <p>But the quest had cost much. Many knights died searching. Many never came back. The Round Table was not as full as before. The golden days of Camelot were ending.</p>`
+            },
+            {
+                title: "The Betrayal",
+                number: "Chapter 7",
+                content: `<p>After the quest for the Holy Grail, things changed at Camelot. Many good knights were gone. The Round Table seemed empty. King Arthur was older now. His hair was gray.</p>
+                <p>The secret love between Lancelot and Guinevere grew stronger. They tried to hide it. But secrets have a way of coming out.</p>
+                <p>Arthur's nephew, Sir Mordred, was jealous and evil. He hated Arthur. He wanted to be king himself. He watched Lancelot and Guinevere carefully. He was waiting for a chance to make trouble.</p>
+                <p>One night, Mordred and his friends caught Lancelot in the queen's room. "Traitor!" they shouted. "We will tell the king!"</p>
+                <p>Lancelot fought his way out. He killed many knights. But the damage was done. Everyone knew the secret now.</p>
+                <p>Arthur was heartbroken. He loved both Lancelot and Guinevere. But the law was clear. The queen must be punished for betraying the king.</p>
+                <p>"Guinevere must die," said the lords. "That is the law."</p>
+                <p>Arthur could not change the law. With a heavy heart, he ordered Guinevere to be burned. It was the punishment for treason.</p>
+                <p>Lancelot could not let this happen. He gathered his friends. On the day of the burning, they attacked. Lancelot rescued Guinevere. But in the fight, he killed Sir Gareth and Sir Gaheris. They were brothers of Sir Gawain.</p>
+                <p>Gawain had been Lancelot's friend. But now his brothers were dead. "I will never forgive you!" Gawain told Lancelot. "I will hunt you until one of us dies!"</p>
+                <p>Lancelot took Guinevere to France. Arthur and Gawain followed with an army. They wanted revenge.</p>
+                <p>While Arthur was gone, Mordred made his move. He told everyone that Arthur was dead. He made himself king. He even tried to marry Guinevere.</p>
+                <p>But Guinevere did not believe Arthur was dead. She locked herself in the Tower of London. She would not come out.</p>
+                <p>Arthur heard what Mordred had done. He rushed back to Britain. His heart was full of anger and sorrow.</p>
+                <p>Gawain was wounded in the fighting in France. On the ship home, he became very sick. He knew he was dying.</p>
+                <p>"I was wrong to fight Lancelot," Gawain said. "He was our friend. Write to him, uncle. Tell him to come help you fight Mordred."</p>
+                <p>Arthur wrote the letter. But it was too late. Gawain died before they reached Britain.</p>
+                <p>Arthur was very sad. So many good knights were dead. His kingdom was broken. His wife was gone. His best friend was his enemy. And his nephew was a traitor.</p>
+                <p>"This is the end," Arthur thought. "Everything I built is falling apart."</p>
+                <p>The great Round Table was cracked. The golden days were over. Now came the darkness.</p>`
+            },
+            {
+                title: "The Last Battle",
+                number: "Chapter 8",
+                content: `<p>King Arthur gathered his army. He marched to fight Mordred. The two armies met at a place called Camlann.</p>
+                <p>Arthur's heart was heavy. He did not want this war. Mordred was his nephew. Some stories say Mordred was actually Arthur's son. Either way, this battle was a tragedy.</p>
+                <p>The night before the battle, Arthur had a dream. He saw Gawain's ghost. "Do not fight tomorrow," Gawain warned. "Make peace with Mordred. Wait for Lancelot to come. If you fight tomorrow, you will die."</p>
+                <p>Arthur woke up afraid. He sent messengers to Mordred. "Let us make peace," he said. "We can share the kingdom."</p>
+                <p>Mordred agreed to meet. But he did not trust Arthur. "If you see anyone draw a sword," he told his men, "attack immediately."</p>
+                <p>Arthur told his men the same thing. Both sides were nervous.</p>
+                <p>The two leaders met between the armies. They began to talk. Perhaps they could find peace. Perhaps the war could be stopped.</p>
+                <p>But then a snake slithered through the grass. It bit one of Mordred's knights. The knight drew his sword to kill the snake.</p>
+                <p>Everyone saw the sword flash in the sun. "Treachery!" both sides shouted. The battle began.</p>
+                <p>It was the worst battle in British history. Knights who had been friends now killed each other. The grass turned red with blood. By the end of the day, almost everyone was dead.</p>
+                <p>Arthur saw Mordred across the battlefield. He picked up a spear. "Traitor!" he shouted. "Now you will die!"</p>
+                <p>Arthur ran at Mordred. He stabbed him with the spear. The spear went through Mordred's body.</p>
+                <p>But Mordred was not finished. With his last strength, he swung his sword. It hit Arthur's head. Arthur fell to the ground.</p>
+                <p>Mordred died with the spear still in him. Arthur lay wounded, near death.</p>
+                <p>Only one knight survived. Sir Bedivere found the king lying by the water. Arthur was bleeding badly. He knew he did not have long to live.</p>
+                <p>"Take Excalibur," Arthur told Bedivere. "Throw it into the lake. Then come tell me what you see."</p>
+                <p>Bedivere took the sword. It was so beautiful. He did not want to throw it away. He hid it under a tree. He went back to Arthur.</p>
+                <p>"What did you see?" asked Arthur.</p>
+                <p>"Only waves on the water," said Bedivere.</p>
+                <p>"You are lying," said Arthur. "Go back and throw the sword."</p>
+                <p>Bedivere tried again. But again he could not do it. He hid the sword and went back to Arthur.</p>
+                <p>"What did you see?"</p>
+                <p>"Only wind on the water."</p>
+                <p>"Traitor!" said Arthur. "Would you betray your dying king? Go back and throw the sword!"</p>
+                <p>This time, Bedivere obeyed. He threw Excalibur far out over the lake. A hand rose from the water. It caught the sword. It waved it three times. Then it sank beneath the waves.</p>
+                <p>Bedivere ran back to Arthur. "I saw a hand catch the sword!" he said. "The Lady of the Lake has taken it back."</p>
+                <p>"Good," said Arthur. "Now carry me to the shore."</p>
+                <p>Bedivere carried the king to the water's edge. A boat was waiting there. Three queens sat in the boat. They wore black hoods.</p>
+                <p>"Put me in the boat," said Arthur.</p>
+                <p>Bedivere laid the king in the boat. One of the queens put Arthur's head in her lap. She was Morgan le Fay, Arthur's sister. She was crying.</p>
+                <p>"Where are you going?" asked Bedivere.</p>
+                <p>"To Avalon," said Arthur. "To heal my wounds. Perhaps I will return one day. When Britain needs me most, I will come back."</p>
+                <p>The boat sailed away into the mist. Bedivere watched until he could see it no more. Then he fell to his knees and wept.</p>
+                <p>King Arthur was gone. Camelot fell into ruins. The Knights of the Round Table were dead or scattered. The golden age was over.</p>
+                <p>But people never forgot Arthur. They told stories about him for hundreds of years. They still tell them today. And some say Arthur is not dead. He is only sleeping in Avalon. One day, when Britain needs him most, the king will return.</p>`
+            },
+            {
+                title: "The Legend Lives On",
+                number: "Epilogue",
+                content: `<p>What happened after Arthur left? The stories tell us a little more.</p>
+                <p>Lancelot finally received Gawain's letter. He sailed to Britain with his army. But he arrived too late. Arthur was gone. The battle was over.</p>
+                <p>Lancelot found Guinevere. She had become a nun. She lived in a convent, praying for forgiveness.</p>
+                <p>"I caused all this trouble," Guinevere said. "Our love destroyed the kingdom. I will spend the rest of my life praying."</p>
+                <p>Lancelot wanted to take her away. But Guinevere refused. "Go back to France," she said. "Forget me. This is goodbye."</p>
+                <p>Lancelot left with a broken heart. He became a holy man, like Guinevere. He spent his days praying and helping the poor. When he died, people said he was smiling. Perhaps he finally found peace.</p>
+                <p>Sir Bedivere became a hermit. He lived alone in the forest. Every day, he visited Arthur's grave. He never forgot his king.</p>
+                <p>Some stories say there is no grave. They say Arthur sleeps in a cave, waiting to return. When Britain faces its greatest danger, Arthur will wake up. He will save his country one more time.</p>
+                <p>The stories of King Arthur spread across the world. Writers and poets told them again and again. Each time, they added new details. New adventures. New knights.</p>
+                <p>Why do we still love these stories? Perhaps because they show us what we want to be. Arthur was a good king who tried to make the world better. The knights were brave and true. They fought for what was right.</p>
+                <p>The Round Table was a beautiful idea. Everyone sitting as equals. No one more important than another. This is what the world could be like.</p>
+                <p>Yes, the story ends sadly. Arthur dies. Camelot falls. The Round Table breaks. But that is life. Good things do not last forever. What matters is that they existed at all.</p>
+                <p>Arthur showed us that one person can make a difference. He pulled a sword from a stone. He built a kingdom of justice. He gathered brave knights to fight for good. For a while, Camelot was the brightest place on Earth.</p>
+                <p>So the legend lives on. In books and movies. In songs and plays. Every time someone tells the story, Arthur lives again.</p>
+                <p>And who knows? Perhaps one day, when we need him most, the king will return. Perhaps he is out there somewhere, waiting. Sleeping under a hill of green grass. Ready to wake up and save us all.</p>
+                <p>The once and future king.</p>
+                <p style="text-align: center; margin-top: 40px; font-style: italic;">THE END</p>`
+            }
+        ];
+
+        // App State
+        let currentChapter = 0;
+        let fontSize = 100;
+        let theme = 'light';
+        let bookmarks = [];
+
+        // DOM Elements
+        const page = document.getElementById('page');
+        const chapterContent = document.getElementById('chapterContent');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageIndicator = document.getElementById('pageIndicator');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const header = document.getElementById('header');
+        const headerTitle = document.getElementById('headerTitle');
+        const tocBtn = document.getElementById('tocBtn');
+        const tocPanel = document.getElementById('tocPanel');
+        const tocList = document.getElementById('tocList');
+        const closeToc = document.getElementById('closeToc');
+        const overlay = document.getElementById('overlay');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const bookmarkBtn = document.getElementById('bookmarkBtn');
+        const bookmarkIndicator = document.getElementById('bookmarkIndicator');
+        const fontDecrease = document.getElementById('fontDecrease');
+        const fontIncrease = document.getElementById('fontIncrease');
+        const fontSizeDisplay = document.getElementById('fontSizeDisplay');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const touchLeft = document.getElementById('touchLeft');
+        const touchRight = document.getElementById('touchRight');
+        const loadingScreen = document.getElementById('loadingScreen');
+
+        // Initialize
+        function init() {
+            loadSettings();
+            buildTOC();
+            renderChapter();
+            setupEventListeners();
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+            }, 800);
+        }
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('kingArthurSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                currentChapter = settings.currentChapter || 0;
+                fontSize = settings.fontSize || 100;
+                theme = settings.theme || 'light';
+                bookmarks = settings.bookmarks || [];
+            }
+            applyTheme(theme);
+            applyFontSize();
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            const settings = {
+                currentChapter,
+                fontSize,
+                theme,
+                bookmarks
+            };
+            localStorage.setItem('kingArthurSettings', JSON.stringify(settings));
+        }
+
+        // Build Table of Contents
+        function buildTOC() {
+            tocList.innerHTML = '';
+            bookContent.forEach((chapter, index) => {
+                const item = document.createElement('li');
+                item.className = 'toc-item' + (index === currentChapter ? ' active' : '');
+                item.innerHTML = `
+                    <span class="chapter-num">${chapter.number}</span>
+                    ${chapter.title}
+                `;
+                item.addEventListener('click', () => {
+                    goToChapter(index);
+                    closeTOC();
+                });
+                tocList.appendChild(item);
+            });
+        }
+
+        // Render current chapter
+        function renderChapter() {
+            const chapter = bookContent[currentChapter];
+            chapterContent.innerHTML = `
+                <h1 class="chapter-title">
+                    <span class="chapter-number">${chapter.number}</span>
+                    ${chapter.title}
+                </h1>
+                <div class="content">
+                    ${chapter.content}
+                </div>
+            `;
+
+            // Update navigation
+            prevBtn.disabled = currentChapter === 0;
+            nextBtn.disabled = currentChapter === bookContent.length - 1;
+            pageIndicator.textContent = `${currentChapter + 1} of ${bookContent.length}`;
+
+            // Update progress
+            const progress = ((currentChapter + 1) / bookContent.length) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+
+            // Update header title
+            headerTitle.textContent = chapter.title;
+
+            // Update TOC active state
+            document.querySelectorAll('.toc-item').forEach((item, index) => {
+                item.classList.toggle('active', index === currentChapter);
+            });
+
+            // Update bookmark indicator
+            updateBookmarkIndicator();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+
+            // Save progress
+            saveSettings();
+        }
+
+        // Go to chapter
+        function goToChapter(index) {
+            if (index >= 0 && index < bookContent.length) {
+                currentChapter = index;
+                renderChapter();
+            }
+        }
+
+        // Navigation
+        function nextChapter() {
+            if (currentChapter < bookContent.length - 1) {
+                currentChapter++;
+                renderChapter();
+            }
+        }
+
+        function prevChapter() {
+            if (currentChapter > 0) {
+                currentChapter--;
+                renderChapter();
+            }
+        }
+
+        // Theme
+        function applyTheme(newTheme) {
+            theme = newTheme;
+            document.body.classList.remove('dark-mode', 'sepia-mode');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else if (theme === 'sepia') {
+                document.body.classList.add('sepia-mode');
+            }
+            themeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+            saveSettings();
+        }
+
+        // Font size
+        function applyFontSize() {
+            document.querySelector('.content')?.style.setProperty('font-size', (fontSize / 100 * 1.1) + 'em');
+            fontSizeDisplay.textContent = fontSize + '%';
+        }
+
+        function changeFontSize(delta) {
+            fontSize = Math.max(70, Math.min(150, fontSize + delta));
+            applyFontSize();
+            saveSettings();
+        }
+
+        // Bookmarks
+        function toggleBookmark() {
+            const index = bookmarks.indexOf(currentChapter);
+            if (index === -1) {
+                bookmarks.push(currentChapter);
+            } else {
+                bookmarks.splice(index, 1);
+            }
+            updateBookmarkIndicator();
+            saveSettings();
+        }
+
+        function updateBookmarkIndicator() {
+            const isBookmarked = bookmarks.includes(currentChapter);
+            bookmarkIndicator.classList.toggle('active', isBookmarked);
+            bookmarkBtn.innerHTML = isBookmarked ? '&#9733;' : '&#9734;';
+        }
+
+        // TOC Panel
+        function openTOC() {
+            tocPanel.classList.add('visible');
+            overlay.classList.add('visible');
+        }
+
+        function closeTOC() {
+            tocPanel.classList.remove('visible');
+            overlay.classList.remove('visible');
+        }
+
+        // Settings Panel
+        function toggleSettings() {
+            settingsPanel.classList.toggle('visible');
+        }
+
+        // Header visibility
+        let lastScroll = 0;
+        function handleScroll() {
+            const currentScroll = window.scrollY;
+            if (currentScroll < 50) {
+                header.classList.add('visible');
+            } else if (currentScroll > lastScroll) {
+                header.classList.remove('visible');
+                settingsPanel.classList.remove('visible');
+            } else {
+                header.classList.add('visible');
+            }
+            lastScroll = currentScroll;
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Navigation
+            prevBtn.addEventListener('click', prevChapter);
+            nextBtn.addEventListener('click', nextChapter);
+            touchLeft.addEventListener('click', prevChapter);
+            touchRight.addEventListener('click', nextChapter);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextChapter();
+                } else if (e.key === 'ArrowLeft') {
+                    prevChapter();
+                } else if (e.key === 'Escape') {
+                    closeTOC();
+                    settingsPanel.classList.remove('visible');
+                }
+            });
+
+            // TOC
+            tocBtn.addEventListener('click', openTOC);
+            closeToc.addEventListener('click', closeTOC);
+            overlay.addEventListener('click', closeTOC);
+
+            // Settings
+            settingsBtn.addEventListener('click', toggleSettings);
+            fontDecrease.addEventListener('click', () => changeFontSize(-10));
+            fontIncrease.addEventListener('click', () => changeFontSize(10));
+            themeButtons.forEach(btn => {
+                btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+            });
+
+            // Bookmark
+            bookmarkBtn.addEventListener('click', toggleBookmark);
+
+            // Scroll
+            window.addEventListener('scroll', handleScroll);
+
+            // Click on page to show header
+            page.addEventListener('click', (e) => {
+                if (e.target.closest('.nav-container')) return;
+                header.classList.add('visible');
+            });
+
+            // Touch swipe for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextChapter();
+                    } else {
+                        prevChapter();
+                    }
+                }
+            }
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
