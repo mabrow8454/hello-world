@@ -2,329 +2,330 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>King Arthur and the Knights of the Round Table</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
             --bg-color: #f5f1e8;
             --text-color: #333;
             --page-bg: #fffef9;
-            --border-color: #d4c9b5;
-            --header-bg: #2d2d2d;
-            --accent-color: #1a73e8;
-            --shadow: rgba(0,0,0,0.1);
+            --ui-bg: #232f3e;
+            --ui-text: #fff;
+            --accent: #48a3c6;
+            --bookmark-color: #48a3c6;
         }
 
         .dark-mode {
-            --bg-color: #1a1a1a;
-            --text-color: #d4d4d4;
-            --page-bg: #262626;
-            --border-color: #404040;
-            --header-bg: #0d0d0d;
-            --shadow: rgba(0,0,0,0.3);
+            --bg-color: #000;
+            --text-color: #ccc;
+            --page-bg: #1a1a1a;
+            --ui-bg: #232f3e;
         }
 
         .sepia-mode {
             --bg-color: #f4ecd8;
             --text-color: #5b4636;
             --page-bg: #f9f3e3;
-            --border-color: #c9b99a;
-            --shadow: rgba(0,0,0,0.08);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
         }
 
         body {
             font-family: 'Georgia', 'Times New Roman', serif;
             background: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
-            transition: all 0.3s ease;
+            user-select: none;
         }
 
-        /* Header */
+        /* Top Header Bar */
         .header {
-            background: var(--header-bg);
-            color: white;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
+            background: var(--ui-bg);
+            color: var(--ui-text);
             z-index: 100;
             transform: translateY(-100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.25s ease;
         }
 
         .header.visible {
             transform: translateY(0);
         }
 
-        .header h1 {
-            font-size: 1rem;
-            font-weight: normal;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 50%;
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .header-controls {
+        .header-left, .header-right {
             display: flex;
-            gap: 15px;
             align-items: center;
+            gap: 8px;
         }
 
         .header-btn {
             background: none;
             border: none;
-            color: white;
+            color: var(--ui-text);
             cursor: pointer;
             padding: 8px;
-            border-radius: 4px;
-            font-size: 1.2rem;
-            transition: background 0.2s;
+            font-size: 1.3rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
         }
 
         .header-btn:hover {
-            background: rgba(255,255,255,0.1);
+            opacity: 1;
         }
 
-        /* Book Container */
-        .book-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px 100px;
-            min-height: 100vh;
+        .header-btn.aa-btn {
+            font-family: Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: bold;
         }
 
-        /* Page Content */
-        .page {
-            background: var(--page-bg);
-            padding: 40px;
-            border-radius: 4px;
-            box-shadow: 0 2px 20px var(--shadow);
-            min-height: 70vh;
-            line-height: 1.8;
-            position: relative;
-        }
-
-        .chapter-title {
-            font-size: 1.8em;
+        .book-title {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: normal;
+            padding: 8px 12px 12px;
+            font-size: 0.95rem;
+            opacity: 0.9;
         }
 
-        .chapter-number {
-            font-size: 0.7em;
-            display: block;
-            margin-bottom: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #888;
-        }
-
-        .content {
-            text-align: justify;
-            font-size: 1.1em;
-        }
-
-        .content p {
-            margin-bottom: 1.5em;
-            text-indent: 1.5em;
-        }
-
-        .content p:first-of-type {
-            text-indent: 0;
-        }
-
-        .content p:first-of-type::first-letter {
-            font-size: 3em;
-            float: left;
-            line-height: 1;
-            padding-right: 10px;
-            color: #8b4513;
-        }
-
-        .dark-mode .content p:first-of-type::first-letter {
-            color: #d4a574;
-        }
-
-        /* Navigation */
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .nav-btn {
-            background: none;
-            border: 2px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover:not(:disabled) {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-            color: white;
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .page-indicator {
-            font-size: 0.9em;
-            color: #888;
-        }
-
-        /* Progress Bar */
-        .progress-container {
+        /* Bottom Bar */
+        .footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--header-bg);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            background: var(--ui-bg);
+            color: var(--ui-text);
+            padding: 12px 16px 20px;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.25s ease;
         }
 
-        .progress-bar {
+        .footer.visible {
+            transform: translateY(0);
+        }
+
+        .page-info {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .grid-btn {
+            background: none;
+            border: none;
+            color: var(--ui-text);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .grid-btn:hover {
+            opacity: 1;
+        }
+
+        .page-slider {
             flex: 1;
             height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
             background: rgba(255,255,255,0.2);
             border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .page-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .page-markers {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Reading Area */
+        .reader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
 
-        .progress-fill {
+        .pages-container {
+            display: flex;
+            transition: transform 0.3s ease;
             height: 100%;
-            background: var(--accent-color);
-            transition: width 0.3s ease;
         }
 
-        .progress-text {
-            color: white;
-            font-size: 0.85rem;
-            min-width: 45px;
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            position: fixed;
-            top: 50px;
-            right: 20px;
-            background: var(--page-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 20px var(--shadow);
-            display: none;
-            z-index: 99;
-            min-width: 250px;
-        }
-
-        .settings-panel.visible {
-            display: block;
-        }
-
-        .settings-section {
-            margin-bottom: 20px;
-        }
-
-        .settings-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .settings-label {
-            font-size: 0.9em;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .theme-options {
+        .page {
+            width: 100vw;
+            height: 100%;
+            flex-shrink: 0;
             display: flex;
-            gap: 10px;
-        }
-
-        .theme-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--border-color);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .theme-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .theme-btn.active {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px var(--accent-color);
-        }
-
-        .theme-btn.light {
-            background: #fffef9;
-        }
-
-        .theme-btn.sepia {
-            background: #f9f3e3;
-        }
-
-        .theme-btn.dark {
-            background: #262626;
-        }
-
-        .font-size-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .font-btn {
-            width: 36px;
-            height: 36px;
-            border: 1px solid var(--border-color);
+            flex-direction: column;
             background: var(--page-bg);
-            color: var(--text-color);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1.2rem;
+            position: relative;
         }
 
-        .font-btn:hover {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
+        .page-content {
+            flex: 1;
+            padding: 40px 30px;
+            overflow: hidden;
+            line-height: 1.75;
+            font-size: 1.1em;
         }
 
-        .font-size-display {
-            min-width: 50px;
+        .page-content p {
+            margin-bottom: 1.2em;
+            text-align: justify;
+            text-indent: 1.5em;
+        }
+
+        .page-content p:first-child {
+            text-indent: 0;
+        }
+
+        .page-content .chapter-header {
             text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        .page-content .chapter-number {
+            font-size: 0.8em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .page-content .chapter-title {
+            font-size: 1.6em;
+            font-weight: normal;
+        }
+
+        .page-content p.first-para::first-letter {
+            font-size: 3.2em;
+            float: left;
+            line-height: 1;
+            padding-right: 8px;
+            padding-top: 4px;
+            color: #8b4513;
+        }
+
+        .dark-mode .page-content p.first-para::first-letter {
+            color: #d4a574;
+        }
+
+        /* Bookmark ribbon on page */
+        .page-bookmark {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: var(--bookmark-color);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        .page-bookmark.visible {
+            opacity: 0.3;
+        }
+
+        .page-bookmark.active {
+            opacity: 1;
+        }
+
+        /* Touch zones */
+        .touch-zone {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 25%;
+            z-index: 50;
+        }
+
+        .touch-zone.left {
+            left: 0;
+            cursor: w-resize;
+        }
+
+        .touch-zone.right {
+            right: 0;
+            cursor: e-resize;
+        }
+
+        .touch-zone.center {
+            left: 25%;
+            right: 25%;
+            width: 50%;
+            cursor: pointer;
+        }
+
+        /* Panels */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Table of Contents */
@@ -332,14 +333,15 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 300px;
-            height: 100vh;
+            width: 320px;
+            max-width: 85%;
+            height: 100%;
             background: var(--page-bg);
-            border-right: 1px solid var(--border-color);
+            z-index: 200;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
-            z-index: 101;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .toc-panel.visible {
@@ -348,15 +350,15 @@
 
         .toc-header {
             padding: 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .toc-header h2 {
-            font-size: 1.2rem;
-            font-weight: normal;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
         .close-btn {
@@ -365,91 +367,251 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--text-color);
+            padding: 4px;
         }
 
         .toc-list {
+            flex: 1;
+            overflow-y: auto;
             list-style: none;
-            padding: 10px 0;
         }
 
         .toc-item {
-            padding: 12px 20px;
+            padding: 14px 20px;
             cursor: pointer;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             transition: background 0.2s;
-            border-left: 3px solid transparent;
         }
 
         .toc-item:hover {
-            background: rgba(0,0,0,0.05);
+            background: rgba(0,0,0,0.03);
         }
 
         .toc-item.active {
-            border-left-color: var(--accent-color);
-            background: rgba(26, 115, 232, 0.1);
+            background: rgba(72, 163, 198, 0.1);
+            border-left: 3px solid var(--accent);
         }
 
         .toc-item .chapter-num {
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: #888;
             display: block;
+            margin-bottom: 2px;
         }
 
-        /* Overlay */
-        .overlay {
+        /* Search Panel */
+        .search-panel {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 100;
+            background: var(--page-bg);
+            z-index: 200;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
-        .overlay.visible {
-            opacity: 1;
-            visibility: visible;
+        .search-panel.visible {
+            transform: translateY(0);
         }
 
-        /* Bookmark indicator */
-        .bookmark-indicator {
-            position: absolute;
-            top: 0;
-            right: 30px;
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #e74c3c;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .search-header {
+            padding: 12px 16px;
+            background: var(--ui-bg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .bookmark-indicator.active {
-            opacity: 1;
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
         }
 
-        /* Touch areas for page turning */
-        .touch-area {
-            position: fixed;
-            top: 50px;
-            bottom: 60px;
-            width: 20%;
-            z-index: 50;
+        .search-input:focus {
+            outline: none;
+        }
+
+        .search-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .search-result {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
             cursor: pointer;
         }
 
-        .touch-area.left {
-            left: 0;
+        .search-result:hover {
+            background: rgba(0,0,0,0.03);
         }
 
-        .touch-area.right {
-            right: 0;
+        .search-result .context {
+            font-size: 0.9em;
+            color: #666;
         }
 
-        /* Loading screen */
+        .search-result .highlight {
+            background: yellow;
+            color: #000;
+        }
+
+        .search-result .chapter-name {
+            font-size: 0.8em;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        /* Font Settings Panel */
+        .font-panel {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            width: 280px;
+            background: var(--page-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 200;
+            padding: 20px;
+            display: none;
+        }
+
+        .font-panel.visible {
+            display: block;
+        }
+
+        .font-section {
+            margin-bottom: 20px;
+        }
+
+        .font-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .font-section label {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .font-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #ddd;
+            background: var(--page-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+
+        .font-btn:hover {
+            background: #eee;
+        }
+
+        .font-size-display {
+            flex: 1;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .theme-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .theme-btn.light { background: #fffef9; color: #333; }
+        .theme-btn.sepia { background: #f9f3e3; color: #5b4636; }
+        .theme-btn.dark { background: #1a1a1a; color: #ccc; }
+
+        .theme-btn.active {
+            border-color: var(--accent);
+        }
+
+        /* Page Grid Navigator */
+        .page-grid {
+            position: fixed;
+            bottom: 80px;
+            left: 10px;
+            right: 10px;
+            max-height: 200px;
+            background: var(--ui-bg);
+            border-radius: 12px;
+            padding: 12px;
+            z-index: 200;
+            display: none;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .page-grid.visible {
+            display: block;
+        }
+
+        .page-grid-inner {
+            display: inline-flex;
+            gap: 8px;
+        }
+
+        .page-thumb {
+            width: 60px;
+            height: 80px;
+            background: var(--page-bg);
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            color: var(--text-color);
+            border: 2px solid transparent;
+        }
+
+        .page-thumb.active {
+            border-color: var(--accent);
+        }
+
+        .page-thumb:hover {
+            opacity: 0.8;
+        }
+
+        /* Loading */
         .loading-screen {
             position: fixed;
             top: 0;
@@ -461,7 +623,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 200;
+            z-index: 300;
             transition: opacity 0.5s;
         }
 
@@ -470,65 +632,66 @@
             pointer-events: none;
         }
 
-        .loading-screen h1 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .loading-screen p {
-            color: #888;
-        }
-
-        /* Book cover for loading */
-        .book-cover {
-            width: 200px;
-            height: 280px;
-            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+        .loading-book {
+            width: 140px;
+            height: 200px;
+            background: linear-gradient(135deg, #8b4513, #654321);
             border-radius: 4px;
-            margin-bottom: 30px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border-left: 8px solid #5a3a1f;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-left: 6px solid #5a3a1f;
+            margin-bottom: 20px;
         }
 
-        .book-cover h2 {
-            color: #ffd700;
-            font-size: 1.1rem;
-            text-align: center;
-            padding: 15px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .book-cover .sword {
-            font-size: 3rem;
+        .loading-book .icon {
+            font-size: 2.5rem;
             margin-bottom: 10px;
         }
 
+        .loading-book h2 {
+            color: #ffd700;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 0 15px;
+        }
+
+        .loading-text {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Page turn animation */
+        .page.turning-left {
+            animation: turnLeft 0.3s ease;
+        }
+
+        .page.turning-right {
+            animation: turnRight 0.3s ease;
+        }
+
+        @keyframes turnLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-10px); }
+        }
+
+        @keyframes turnRight {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(10px); }
+        }
+
         /* Responsive */
-        @media (max-width: 600px) {
-            .page {
-                padding: 25px;
-            }
-
-            .chapter-title {
-                font-size: 1.4em;
-            }
-
-            .content {
+        @media (max-width: 500px) {
+            .page-content {
+                padding: 30px 20px;
                 font-size: 1em;
-            }
-
-            .header h1 {
-                font-size: 0.9rem;
             }
 
             .toc-panel {
                 width: 100%;
+                max-width: 100%;
             }
         }
     </style>
@@ -536,25 +699,55 @@
 <body>
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
-        <div class="book-cover">
-            <div class="sword">&#9876;</div>
+        <div class="loading-book">
+            <div class="icon">&#9876;</div>
             <h2>King Arthur and the Knights of the Round Table</h2>
         </div>
-        <p>Loading...</p>
+        <p class="loading-text">Loading...</p>
     </div>
 
     <!-- Header -->
     <header class="header" id="header">
-        <button class="header-btn" id="tocBtn" title="Table of Contents">&#9776;</button>
-        <h1 id="headerTitle">King Arthur</h1>
-        <div class="header-controls">
-            <button class="header-btn" id="bookmarkBtn" title="Bookmark">&#9734;</button>
-            <button class="header-btn" id="settingsBtn" title="Settings">&#9881;</button>
+        <div class="header-top">
+            <div class="header-left">
+                <button class="header-btn" id="tocBtn" title="Contents">&#9776;</button>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" id="searchBtn" title="Search">&#128269;</button>
+                <button class="header-btn" id="bookmarkBtn" title="Bookmark">&#128278;</button>
+                <button class="header-btn aa-btn" id="fontBtn" title="Font Settings">Aa</button>
+            </div>
         </div>
+        <div class="book-title" id="bookTitle">King Arthur and the Knights of the Round Table</div>
     </header>
 
-    <!-- Table of Contents -->
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <div class="page-info" id="pageInfo">Page 1 of 45 · 2%</div>
+        <div class="slider-container">
+            <button class="grid-btn" id="gridBtn" title="Page Overview">&#9783;</button>
+            <input type="range" class="page-slider" id="pageSlider" min="1" max="100" value="1">
+        </div>
+        <div class="page-markers">
+            <span id="sliderStart">1</span>
+            <span id="sliderEnd">45</span>
+        </div>
+    </footer>
+
+    <!-- Reader Area -->
+    <div class="reader" id="reader">
+        <div class="pages-container" id="pagesContainer"></div>
+    </div>
+
+    <!-- Touch Zones -->
+    <div class="touch-zone left" id="touchLeft"></div>
+    <div class="touch-zone center" id="touchCenter"></div>
+    <div class="touch-zone right" id="touchRight"></div>
+
+    <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
+
+    <!-- Table of Contents -->
     <nav class="toc-panel" id="tocPanel">
         <div class="toc-header">
             <h2>Contents</h2>
@@ -563,58 +756,47 @@
         <ul class="toc-list" id="tocList"></ul>
     </nav>
 
-    <!-- Settings Panel -->
-    <div class="settings-panel" id="settingsPanel">
-        <div class="settings-section">
-            <div class="settings-label">Theme</div>
-            <div class="theme-options">
-                <button class="theme-btn light active" data-theme="light" title="Light"></button>
-                <button class="theme-btn sepia" data-theme="sepia" title="Sepia"></button>
-                <button class="theme-btn dark" data-theme="dark" title="Dark"></button>
-            </div>
+    <!-- Search Panel -->
+    <div class="search-panel" id="searchPanel">
+        <div class="search-header">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search in book...">
+            <button class="search-close" id="closeSearch">Cancel</button>
         </div>
-        <div class="settings-section">
-            <div class="settings-label">Font Size</div>
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- Font Settings Panel -->
+    <div class="font-panel" id="fontPanel">
+        <div class="font-section">
+            <label>Font Size</label>
             <div class="font-size-controls">
                 <button class="font-btn" id="fontDecrease">A-</button>
                 <span class="font-size-display" id="fontSizeDisplay">100%</span>
                 <button class="font-btn" id="fontIncrease">A+</button>
             </div>
         </div>
+        <div class="font-section">
+            <label>Theme</label>
+            <div class="theme-options">
+                <button class="theme-btn light active" data-theme="light">Light</button>
+                <button class="theme-btn sepia" data-theme="sepia">Sepia</button>
+                <button class="theme-btn dark" data-theme="dark">Dark</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Touch Areas -->
-    <div class="touch-area left" id="touchLeft"></div>
-    <div class="touch-area right" id="touchRight"></div>
-
-    <!-- Book Content -->
-    <main class="book-container">
-        <article class="page" id="page">
-            <div class="bookmark-indicator" id="bookmarkIndicator"></div>
-            <div id="chapterContent"></div>
-            <nav class="nav-container">
-                <button class="nav-btn" id="prevBtn">&#8592; Previous</button>
-                <span class="page-indicator" id="pageIndicator"></span>
-                <button class="nav-btn" id="nextBtn">Next &#8594;</button>
-            </nav>
-        </article>
-    </main>
-
-    <!-- Progress Bar -->
-    <div class="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <span class="progress-text" id="progressText">0%</span>
+    <!-- Page Grid Navigator -->
+    <div class="page-grid" id="pageGrid">
+        <div class="page-grid-inner" id="pageGridInner"></div>
     </div>
 
     <script>
-        // Book content - King Arthur and the Knights of the Round Table
+        // Book Content
         const bookContent = [
             {
                 title: "The Sword in the Stone",
                 number: "Chapter 1",
-                content: `<p>Long ago, in the land of Britain, there lived a great king named Uther Pendragon. He was a strong and brave king, but he had no son to rule after him. This made him very sad.</p>
+                content: `<p class="first-para">Long ago, in the land of Britain, there lived a great king named Uther Pendragon. He was a strong and brave king, but he had no son to rule after him. This made him very sad.</p>
                 <p>One day, the wise wizard Merlin came to see the king. Merlin had long white hair and a long white beard. His eyes were bright and full of magic.</p>
                 <p>"Do not worry, King Uther," said Merlin. "You will have a son. But you must give the boy to me. I will keep him safe and teach him many things."</p>
                 <p>The king did not want to give away his son. But he trusted Merlin. "Very well," he said. "I will do as you say."</p>
@@ -642,7 +824,7 @@
             {
                 title: "The Wizard Merlin",
                 number: "Chapter 2",
-                content: `<p>After Arthur became king, Merlin came to help him. The old wizard knew everything about the past and the future. He had magic powers that no one could understand.</p>
+                content: `<p class="first-para">After Arthur became king, Merlin came to help him. The old wizard knew everything about the past and the future. He had magic powers that no one could understand.</p>
                 <p>"You will be a great king, Arthur," said Merlin. "But you must be wise. You must be fair. You must help the weak and fight the strong who do wrong."</p>
                 <p>Arthur listened to everything Merlin said. The wizard became his teacher and his friend. They talked for hours about how to rule the kingdom.</p>
                 <p>But not everyone was happy. Some kings and lords did not want Arthur to rule. They gathered their armies. They marched to fight young King Arthur.</p>
@@ -674,7 +856,7 @@
             {
                 title: "The Round Table",
                 number: "Chapter 3",
-                content: `<p>King Arthur built a great castle called Camelot. It had tall towers and strong walls. It stood on a hill where everyone could see it. Inside were beautiful rooms and a great hall.</p>
+                content: `<p class="first-para">King Arthur built a great castle called Camelot. It had tall towers and strong walls. It stood on a hill where everyone could see it. Inside were beautiful rooms and a great hall.</p>
                 <p>Arthur married a beautiful princess named Guinevere. She had dark hair and kind eyes. She came from a neighboring kingdom. Her father gave Arthur a wedding present: a great round table.</p>
                 <p>"This table is special," said Guinevere's father. "It has no head and no foot. Everyone who sits at this table is equal. No one is more important than another."</p>
                 <p>Arthur loved the table. "This is perfect," he said. "My knights will sit here with me. We will all be equal. We will make decisions together."</p>
@@ -699,7 +881,7 @@
             {
                 title: "Sir Lancelot",
                 number: "Chapter 4",
-                content: `<p>Sir Lancelot was the greatest of all the knights. He was tall and strong with golden hair. His eyes were blue like the summer sky. When he fought, no one could beat him. When he spoke, everyone listened.</p>
+                content: `<p class="first-para">Sir Lancelot was the greatest of all the knights. He was tall and strong with golden hair. His eyes were blue like the summer sky. When he fought, no one could beat him. When he spoke, everyone listened.</p>
                 <p>Lancelot came to Camelot from a far country. He wanted to serve King Arthur. He had heard stories of the Round Table. He wanted to be one of its knights.</p>
                 <p>Arthur liked Lancelot immediately. "You are welcome here," said the king. "I can see you are brave and true."</p>
                 <p>Lancelot proved his worth many times. He saved Arthur's life in battle. He defeated the king's enemies. He rescued people in danger. Soon he was the most famous knight in all the land.</p>
@@ -729,7 +911,7 @@
             {
                 title: "Sir Gawain and the Green Knight",
                 number: "Chapter 5",
-                content: `<p>It was New Year's Day at Camelot. King Arthur held a great feast. All the Knights of the Round Table were there. They ate and drank and told stories.</p>
+                content: `<p class="first-para">It was New Year's Day at Camelot. King Arthur held a great feast. All the Knights of the Round Table were there. They ate and drank and told stories.</p>
                 <p>Suddenly, the great doors flew open. A giant knight rode into the hall on a huge horse. But there was something strange about him. He was completely green. His skin was green. His hair was green. His armor was green. Even his horse was green.</p>
                 <p>The Green Knight carried no sword. Instead, he held a great axe. The blade shone like silver.</p>
                 <p>"I come with a challenge," said the Green Knight. His voice was like thunder. "Who will play a game with me?"</p>
@@ -763,7 +945,7 @@
             {
                 title: "The Quest for the Holy Grail",
                 number: "Chapter 6",
-                content: `<p>One evening, something wonderful happened at Camelot. The knights were sitting at the Round Table. Suddenly, a bright light filled the room. It was brighter than the sun.</p>
+                content: `<p class="first-para">One evening, something wonderful happened at Camelot. The knights were sitting at the Round Table. Suddenly, a bright light filled the room. It was brighter than the sun.</p>
                 <p>In the light, they saw a cup. It floated in the air, covered with a white cloth. The cup moved slowly around the table. Then it disappeared.</p>
                 <p>"What was that?" asked the knights.</p>
                 <p>"That was the Holy Grail," said an old man who appeared in the doorway. "It is the cup that Jesus used at the Last Supper. It has great magic. It can heal any wound. It can make food appear. But only the purest knight can find it."</p>
@@ -791,7 +973,7 @@
             {
                 title: "The Betrayal",
                 number: "Chapter 7",
-                content: `<p>After the quest for the Holy Grail, things changed at Camelot. Many good knights were gone. The Round Table seemed empty. King Arthur was older now. His hair was gray.</p>
+                content: `<p class="first-para">After the quest for the Holy Grail, things changed at Camelot. Many good knights were gone. The Round Table seemed empty. King Arthur was older now. His hair was gray.</p>
                 <p>The secret love between Lancelot and Guinevere grew stronger. They tried to hide it. But secrets have a way of coming out.</p>
                 <p>Arthur's nephew, Sir Mordred, was jealous and evil. He hated Arthur. He wanted to be king himself. He watched Lancelot and Guinevere carefully. He was waiting for a chance to make trouble.</p>
                 <p>One night, Mordred and his friends caught Lancelot in the queen's room. "Traitor!" they shouted. "We will tell the king!"</p>
@@ -815,7 +997,7 @@
             {
                 title: "The Last Battle",
                 number: "Chapter 8",
-                content: `<p>King Arthur gathered his army. He marched to fight Mordred. The two armies met at a place called Camlann.</p>
+                content: `<p class="first-para">King Arthur gathered his army. He marched to fight Mordred. The two armies met at a place called Camlann.</p>
                 <p>Arthur's heart was heavy. He did not want this war. Mordred was his nephew. Some stories say Mordred was actually Arthur's son. Either way, this battle was a tragedy.</p>
                 <p>The night before the battle, Arthur had a dream. He saw Gawain's ghost. "Do not fight tomorrow," Gawain warned. "Make peace with Mordred. Wait for Lancelot to come. If you fight tomorrow, you will die."</p>
                 <p>Arthur woke up afraid. He sent messengers to Mordred. "Let us make peace," he said. "We can share the kingdom."</p>
@@ -854,7 +1036,7 @@
             {
                 title: "The Legend Lives On",
                 number: "Epilogue",
-                content: `<p>What happened after Arthur left? The stories tell us a little more.</p>
+                content: `<p class="first-para">What happened after Arthur left? The stories tell us a little more.</p>
                 <p>Lancelot finally received Gawain's letter. He sailed to Britain with his army. But he arrived too late. Arthur was gone. The battle was over.</p>
                 <p>Lancelot found Guinevere. She had become a nun. She lived in a convent, praying for forgiveness.</p>
                 <p>"I caused all this trouble," Guinevere said. "Our love destroyed the kingdom. I will spend the rest of my life praying."</p>
@@ -875,72 +1057,207 @@
         ];
 
         // App State
-        let currentChapter = 0;
+        let currentPage = 0;
+        let totalPages = 0;
+        let pages = [];
         let fontSize = 100;
         let theme = 'light';
         let bookmarks = [];
+        let uiVisible = false;
 
         // DOM Elements
-        const page = document.getElementById('page');
-        const chapterContent = document.getElementById('chapterContent');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const pageIndicator = document.getElementById('pageIndicator');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
+        const reader = document.getElementById('reader');
+        const pagesContainer = document.getElementById('pagesContainer');
         const header = document.getElementById('header');
-        const headerTitle = document.getElementById('headerTitle');
+        const footer = document.getElementById('footer');
+        const pageSlider = document.getElementById('pageSlider');
+        const pageInfo = document.getElementById('pageInfo');
         const tocBtn = document.getElementById('tocBtn');
         const tocPanel = document.getElementById('tocPanel');
         const tocList = document.getElementById('tocList');
         const closeToc = document.getElementById('closeToc');
         const overlay = document.getElementById('overlay');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsPanel = document.getElementById('settingsPanel');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchPanel = document.getElementById('searchPanel');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const closeSearch = document.getElementById('closeSearch');
         const bookmarkBtn = document.getElementById('bookmarkBtn');
-        const bookmarkIndicator = document.getElementById('bookmarkIndicator');
+        const fontBtn = document.getElementById('fontBtn');
+        const fontPanel = document.getElementById('fontPanel');
         const fontDecrease = document.getElementById('fontDecrease');
         const fontIncrease = document.getElementById('fontIncrease');
         const fontSizeDisplay = document.getElementById('fontSizeDisplay');
         const themeButtons = document.querySelectorAll('.theme-btn');
+        const gridBtn = document.getElementById('gridBtn');
+        const pageGrid = document.getElementById('pageGrid');
+        const pageGridInner = document.getElementById('pageGridInner');
         const touchLeft = document.getElementById('touchLeft');
+        const touchCenter = document.getElementById('touchCenter');
         const touchRight = document.getElementById('touchRight');
         const loadingScreen = document.getElementById('loadingScreen');
+        const sliderStart = document.getElementById('sliderStart');
+        const sliderEnd = document.getElementById('sliderEnd');
 
         // Initialize
         function init() {
             loadSettings();
+            paginateContent();
             buildTOC();
-            renderChapter();
             setupEventListeners();
             setTimeout(() => {
                 loadingScreen.classList.add('hidden');
-            }, 800);
+            }, 600);
         }
 
-        // Load settings from localStorage
-        function loadSettings() {
-            const saved = localStorage.getItem('kingArthurSettings');
-            if (saved) {
-                const settings = JSON.parse(saved);
-                currentChapter = settings.currentChapter || 0;
-                fontSize = settings.fontSize || 100;
-                theme = settings.theme || 'light';
-                bookmarks = settings.bookmarks || [];
+        // Paginate content into screen-sized pages
+        function paginateContent() {
+            pages = [];
+            const pageHeight = window.innerHeight - 80; // Leave room for padding
+            const tempDiv = document.createElement('div');
+            tempDiv.style.cssText = `
+                position: absolute;
+                visibility: hidden;
+                width: ${window.innerWidth - 60}px;
+                font-size: ${fontSize}%;
+                line-height: 1.75;
+                font-family: Georgia, serif;
+            `;
+            document.body.appendChild(tempDiv);
+
+            bookContent.forEach((chapter, chapterIndex) => {
+                // Create chapter header page
+                const headerHTML = `
+                    <div class="chapter-header">
+                        <div class="chapter-number">${chapter.number}</div>
+                        <div class="chapter-title">${chapter.title}</div>
+                    </div>
+                `;
+
+                // Parse content into paragraphs
+                const contentDiv = document.createElement('div');
+                contentDiv.innerHTML = chapter.content;
+                const paragraphs = Array.from(contentDiv.querySelectorAll('p'));
+
+                let currentPageContent = headerHTML;
+                let isFirstPage = true;
+
+                paragraphs.forEach((p, pIndex) => {
+                    const pHTML = p.outerHTML;
+                    tempDiv.innerHTML = currentPageContent + pHTML;
+
+                    if (tempDiv.offsetHeight > pageHeight && currentPageContent !== headerHTML) {
+                        // Save current page
+                        pages.push({
+                            content: currentPageContent,
+                            chapterIndex,
+                            chapterTitle: chapter.title
+                        });
+                        currentPageContent = pHTML;
+                        isFirstPage = false;
+                    } else {
+                        currentPageContent += pHTML;
+                    }
+                });
+
+                // Save last page of chapter
+                if (currentPageContent) {
+                    pages.push({
+                        content: currentPageContent,
+                        chapterIndex,
+                        chapterTitle: chapter.title
+                    });
+                }
+            });
+
+            document.body.removeChild(tempDiv);
+            totalPages = pages.length;
+
+            // Update slider
+            pageSlider.max = totalPages;
+            pageSlider.value = currentPage + 1;
+            sliderEnd.textContent = totalPages;
+
+            renderPages();
+        }
+
+        // Render visible pages
+        function renderPages() {
+            pagesContainer.innerHTML = '';
+
+            // Render current page and neighbors for smooth transitions
+            for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'page';
+                pageEl.dataset.page = i;
+
+                const isBookmarked = bookmarks.includes(i);
+
+                pageEl.innerHTML = `
+                    <div class="page-bookmark ${isBookmarked ? 'active' : 'visible'}" data-page="${i}">&#128278;</div>
+                    <div class="page-content" style="font-size: ${fontSize}%;">
+                        ${pages[i].content}
+                    </div>
+                `;
+                pagesContainer.appendChild(pageEl);
             }
-            applyTheme(theme);
-            applyFontSize();
+
+            // Position container to show current page
+            const offset = currentPage > 0 ? -100 : 0;
+            pagesContainer.style.transform = `translateX(${offset}vw)`;
+
+            updateUI();
         }
 
-        // Save settings to localStorage
-        function saveSettings() {
-            const settings = {
-                currentChapter,
-                fontSize,
-                theme,
-                bookmarks
-            };
-            localStorage.setItem('kingArthurSettings', JSON.stringify(settings));
+        // Update UI elements
+        function updateUI() {
+            const progress = Math.round(((currentPage + 1) / totalPages) * 100);
+            pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages} · ${progress}%`;
+            pageSlider.value = currentPage + 1;
+
+            // Update bookmark button
+            const isBookmarked = bookmarks.includes(currentPage);
+            bookmarkBtn.style.opacity = isBookmarked ? '1' : '0.7';
+
+            // Update TOC active state
+            const currentChapter = pages[currentPage]?.chapterIndex;
+            document.querySelectorAll('.toc-item').forEach((item, index) => {
+                item.classList.toggle('active', index === currentChapter);
+            });
+        }
+
+        // Navigate pages
+        function goToPage(pageNum) {
+            if (pageNum >= 0 && pageNum < totalPages) {
+                currentPage = pageNum;
+                renderPages();
+                saveSettings();
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages - 1) {
+                goToPage(currentPage + 1);
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                goToPage(currentPage - 1);
+            }
+        }
+
+        // Toggle UI visibility
+        function toggleUI() {
+            uiVisible = !uiVisible;
+            header.classList.toggle('visible', uiVisible);
+            footer.classList.toggle('visible', uiVisible);
+
+            // Hide panels when toggling UI
+            if (!uiVisible) {
+                fontPanel.classList.remove('visible');
+                pageGrid.classList.remove('visible');
+            }
         }
 
         // Build Table of Contents
@@ -948,132 +1265,28 @@
             tocList.innerHTML = '';
             bookContent.forEach((chapter, index) => {
                 const item = document.createElement('li');
-                item.className = 'toc-item' + (index === currentChapter ? ' active' : '');
+                item.className = 'toc-item';
                 item.innerHTML = `
                     <span class="chapter-num">${chapter.number}</span>
                     ${chapter.title}
                 `;
                 item.addEventListener('click', () => {
-                    goToChapter(index);
-                    closeTOC();
+                    // Find first page of this chapter
+                    const pageIndex = pages.findIndex(p => p.chapterIndex === index);
+                    if (pageIndex >= 0) {
+                        goToPage(pageIndex);
+                        closeTOC();
+                    }
                 });
                 tocList.appendChild(item);
             });
-        }
-
-        // Render current chapter
-        function renderChapter() {
-            const chapter = bookContent[currentChapter];
-            chapterContent.innerHTML = `
-                <h1 class="chapter-title">
-                    <span class="chapter-number">${chapter.number}</span>
-                    ${chapter.title}
-                </h1>
-                <div class="content">
-                    ${chapter.content}
-                </div>
-            `;
-
-            // Update navigation
-            prevBtn.disabled = currentChapter === 0;
-            nextBtn.disabled = currentChapter === bookContent.length - 1;
-            pageIndicator.textContent = `${currentChapter + 1} of ${bookContent.length}`;
-
-            // Update progress
-            const progress = ((currentChapter + 1) / bookContent.length) * 100;
-            progressFill.style.width = progress + '%';
-            progressText.textContent = Math.round(progress) + '%';
-
-            // Update header title
-            headerTitle.textContent = chapter.title;
-
-            // Update TOC active state
-            document.querySelectorAll('.toc-item').forEach((item, index) => {
-                item.classList.toggle('active', index === currentChapter);
-            });
-
-            // Update bookmark indicator
-            updateBookmarkIndicator();
-
-            // Scroll to top
-            window.scrollTo(0, 0);
-
-            // Save progress
-            saveSettings();
-        }
-
-        // Go to chapter
-        function goToChapter(index) {
-            if (index >= 0 && index < bookContent.length) {
-                currentChapter = index;
-                renderChapter();
-            }
-        }
-
-        // Navigation
-        function nextChapter() {
-            if (currentChapter < bookContent.length - 1) {
-                currentChapter++;
-                renderChapter();
-            }
-        }
-
-        function prevChapter() {
-            if (currentChapter > 0) {
-                currentChapter--;
-                renderChapter();
-            }
-        }
-
-        // Theme
-        function applyTheme(newTheme) {
-            theme = newTheme;
-            document.body.classList.remove('dark-mode', 'sepia-mode');
-            if (theme === 'dark') {
-                document.body.classList.add('dark-mode');
-            } else if (theme === 'sepia') {
-                document.body.classList.add('sepia-mode');
-            }
-            themeButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === theme);
-            });
-            saveSettings();
-        }
-
-        // Font size
-        function applyFontSize() {
-            document.querySelector('.content')?.style.setProperty('font-size', (fontSize / 100 * 1.1) + 'em');
-            fontSizeDisplay.textContent = fontSize + '%';
-        }
-
-        function changeFontSize(delta) {
-            fontSize = Math.max(70, Math.min(150, fontSize + delta));
-            applyFontSize();
-            saveSettings();
-        }
-
-        // Bookmarks
-        function toggleBookmark() {
-            const index = bookmarks.indexOf(currentChapter);
-            if (index === -1) {
-                bookmarks.push(currentChapter);
-            } else {
-                bookmarks.splice(index, 1);
-            }
-            updateBookmarkIndicator();
-            saveSettings();
-        }
-
-        function updateBookmarkIndicator() {
-            const isBookmarked = bookmarks.includes(currentChapter);
-            bookmarkIndicator.classList.toggle('active', isBookmarked);
-            bookmarkBtn.innerHTML = isBookmarked ? '&#9733;' : '&#9734;';
         }
 
         // TOC Panel
         function openTOC() {
             tocPanel.classList.add('visible');
             overlay.classList.add('visible');
+            updateUI();
         }
 
         function closeTOC() {
@@ -1081,97 +1294,263 @@
             overlay.classList.remove('visible');
         }
 
-        // Settings Panel
-        function toggleSettings() {
-            settingsPanel.classList.toggle('visible');
+        // Search
+        function openSearch() {
+            searchPanel.classList.add('visible');
+            searchInput.focus();
         }
 
-        // Header visibility
-        let lastScroll = 0;
-        function handleScroll() {
-            const currentScroll = window.scrollY;
-            if (currentScroll < 50) {
-                header.classList.add('visible');
-            } else if (currentScroll > lastScroll) {
-                header.classList.remove('visible');
-                settingsPanel.classList.remove('visible');
-            } else {
-                header.classList.add('visible');
+        function closeSearchPanel() {
+            searchPanel.classList.remove('visible');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+        }
+
+        function performSearch(query) {
+            if (query.length < 2) {
+                searchResults.innerHTML = '';
+                return;
             }
-            lastScroll = currentScroll;
+
+            const results = [];
+            const lowerQuery = query.toLowerCase();
+
+            bookContent.forEach((chapter, chapterIndex) => {
+                const text = chapter.content.replace(/<[^>]*>/g, '');
+                let index = 0;
+
+                while ((index = text.toLowerCase().indexOf(lowerQuery, index)) !== -1) {
+                    const start = Math.max(0, index - 40);
+                    const end = Math.min(text.length, index + query.length + 40);
+                    let context = text.substring(start, end);
+
+                    if (start > 0) context = '...' + context;
+                    if (end < text.length) context = context + '...';
+
+                    // Highlight match
+                    const highlightedContext = context.replace(
+                        new RegExp(query, 'gi'),
+                        '<span class="highlight">$&</span>'
+                    );
+
+                    results.push({
+                        chapterIndex,
+                        chapterTitle: chapter.title,
+                        context: highlightedContext
+                    });
+
+                    index += query.length;
+                    if (results.length >= 20) break;
+                }
+
+                if (results.length >= 20) return;
+            });
+
+            searchResults.innerHTML = results.map(r => `
+                <div class="search-result" data-chapter="${r.chapterIndex}">
+                    <div class="context">${r.context}</div>
+                    <div class="chapter-name">${r.chapterTitle}</div>
+                </div>
+            `).join('') || '<div style="padding: 20px; color: #888;">No results found</div>';
+
+            // Add click handlers
+            searchResults.querySelectorAll('.search-result').forEach(el => {
+                el.addEventListener('click', () => {
+                    const chapterIndex = parseInt(el.dataset.chapter);
+                    const pageIndex = pages.findIndex(p => p.chapterIndex === chapterIndex);
+                    if (pageIndex >= 0) {
+                        goToPage(pageIndex);
+                        closeSearchPanel();
+                    }
+                });
+            });
         }
 
-        // Event Listeners
+        // Bookmarks
+        function toggleBookmark() {
+            const index = bookmarks.indexOf(currentPage);
+            if (index === -1) {
+                bookmarks.push(currentPage);
+            } else {
+                bookmarks.splice(index, 1);
+            }
+            renderPages();
+            saveSettings();
+        }
+
+        // Font settings
+        function toggleFontPanel() {
+            fontPanel.classList.toggle('visible');
+            pageGrid.classList.remove('visible');
+        }
+
+        function changeFontSize(delta) {
+            fontSize = Math.max(70, Math.min(150, fontSize + delta));
+            fontSizeDisplay.textContent = fontSize + '%';
+            paginateContent();
+            saveSettings();
+        }
+
+        function applyTheme(newTheme) {
+            theme = newTheme;
+            document.body.classList.remove('dark-mode', 'sepia-mode');
+            if (theme === 'dark') document.body.classList.add('dark-mode');
+            if (theme === 'sepia') document.body.classList.add('sepia-mode');
+
+            themeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+            saveSettings();
+        }
+
+        // Page grid navigator
+        function togglePageGrid() {
+            pageGrid.classList.toggle('visible');
+            fontPanel.classList.remove('visible');
+
+            if (pageGrid.classList.contains('visible')) {
+                buildPageGrid();
+            }
+        }
+
+        function buildPageGrid() {
+            pageGridInner.innerHTML = '';
+            for (let i = 0; i < totalPages; i++) {
+                const thumb = document.createElement('div');
+                thumb.className = 'page-thumb' + (i === currentPage ? ' active' : '');
+                thumb.textContent = i + 1;
+                thumb.addEventListener('click', () => {
+                    goToPage(i);
+                    pageGrid.classList.remove('visible');
+                });
+                pageGridInner.appendChild(thumb);
+            }
+
+            // Scroll to current page
+            const activeThumb = pageGridInner.querySelector('.active');
+            if (activeThumb) {
+                activeThumb.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+            }
+        }
+
+        // Settings persistence
+        function loadSettings() {
+            const saved = localStorage.getItem('kingArthurKindle');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                currentPage = settings.currentPage || 0;
+                fontSize = settings.fontSize || 100;
+                theme = settings.theme || 'light';
+                bookmarks = settings.bookmarks || [];
+            }
+            applyTheme(theme);
+            fontSizeDisplay.textContent = fontSize + '%';
+        }
+
+        function saveSettings() {
+            localStorage.setItem('kingArthurKindle', JSON.stringify({
+                currentPage,
+                fontSize,
+                theme,
+                bookmarks
+            }));
+        }
+
+        // Event listeners
         function setupEventListeners() {
-            // Navigation
-            prevBtn.addEventListener('click', prevChapter);
-            nextBtn.addEventListener('click', nextChapter);
-            touchLeft.addEventListener('click', prevChapter);
-            touchRight.addEventListener('click', nextChapter);
+            // Touch zones
+            touchLeft.addEventListener('click', prevPage);
+            touchRight.addEventListener('click', nextPage);
+            touchCenter.addEventListener('click', toggleUI);
+
+            // Swipe support
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            reader.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            reader.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchStartX - touchEndX;
+                const diffY = touchStartY - touchEndY;
+
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                    if (diffX > 0) nextPage();
+                    else prevPage();
+                }
+            }, { passive: true });
 
             // Keyboard navigation
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowRight' || e.key === ' ') {
-                    nextChapter();
-                } else if (e.key === 'ArrowLeft') {
-                    prevChapter();
-                } else if (e.key === 'Escape') {
-                    closeTOC();
-                    settingsPanel.classList.remove('visible');
+                if (searchPanel.classList.contains('visible')) return;
+
+                switch(e.key) {
+                    case 'ArrowRight':
+                    case ' ':
+                        nextPage();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowLeft':
+                        prevPage();
+                        e.preventDefault();
+                        break;
+                    case 'Escape':
+                        closeTOC();
+                        closeSearchPanel();
+                        fontPanel.classList.remove('visible');
+                        pageGrid.classList.remove('visible');
+                        break;
                 }
+            });
+
+            // Slider
+            pageSlider.addEventListener('input', () => {
+                goToPage(parseInt(pageSlider.value) - 1);
             });
 
             // TOC
             tocBtn.addEventListener('click', openTOC);
             closeToc.addEventListener('click', closeTOC);
-            overlay.addEventListener('click', closeTOC);
+            overlay.addEventListener('click', () => {
+                closeTOC();
+                fontPanel.classList.remove('visible');
+                pageGrid.classList.remove('visible');
+            });
 
-            // Settings
-            settingsBtn.addEventListener('click', toggleSettings);
+            // Search
+            searchBtn.addEventListener('click', openSearch);
+            closeSearch.addEventListener('click', closeSearchPanel);
+            searchInput.addEventListener('input', (e) => performSearch(e.target.value));
+
+            // Bookmark
+            bookmarkBtn.addEventListener('click', toggleBookmark);
+
+            // Font settings
+            fontBtn.addEventListener('click', toggleFontPanel);
             fontDecrease.addEventListener('click', () => changeFontSize(-10));
             fontIncrease.addEventListener('click', () => changeFontSize(10));
             themeButtons.forEach(btn => {
                 btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
             });
 
-            // Bookmark
-            bookmarkBtn.addEventListener('click', toggleBookmark);
+            // Page grid
+            gridBtn.addEventListener('click', togglePageGrid);
 
-            // Scroll
-            window.addEventListener('scroll', handleScroll);
-
-            // Click on page to show header
-            page.addEventListener('click', (e) => {
-                if (e.target.closest('.nav-container')) return;
-                header.classList.add('visible');
+            // Handle resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    paginateContent();
+                }, 250);
             });
-
-            // Touch swipe for mobile
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            document.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-
-            document.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-
-            function handleSwipe() {
-                const diff = touchStartX - touchEndX;
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) {
-                        nextChapter();
-                    } else {
-                        prevChapter();
-                    }
-                }
-            }
         }
 
-        // Start the app
+        // Start
         init();
     </script>
 </body>
