@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookshelf</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            min-height: 100vh;
+            color: #f5f1e8;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: normal;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            color: #c9b99a;
+            font-size: 1.1rem;
+        }
+
+        .bookshelf-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .shelf {
+            background: linear-gradient(180deg, #5a3a1f 0%, #3d2815 100%);
+            border-radius: 4px;
+            padding: 30px 40px 20px;
+            margin-bottom: 30px;
+            box-shadow:
+                0 10px 30px rgba(0,0,0,0.4),
+                inset 0 2px 0 rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .shelf::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 15px;
+            background: linear-gradient(180deg, #4a2a0f 0%, #2d1a0a 100%);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .shelf-label {
+            font-size: 0.9rem;
+            color: #c9b99a;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .books {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            padding-bottom: 10px;
+        }
+
+        .book {
+            width: 160px;
+            height: 240px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            box-shadow:
+                5px 5px 15px rgba(0,0,0,0.4),
+                -2px 0 5px rgba(0,0,0,0.2);
+            border-left: 8px solid rgba(0,0,0,0.3);
+        }
+
+        .book:hover {
+            transform: translateY(-15px) rotate(-2deg);
+            box-shadow:
+                10px 15px 30px rgba(0,0,0,0.5),
+                -2px 0 5px rgba(0,0,0,0.2);
+        }
+
+        .book-king-arthur {
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+        }
+
+        .book-alice {
+            background: linear-gradient(135deg, #2e5984 0%, #1a3a5c 100%);
+        }
+
+        .book-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .book-title {
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 0 15px;
+            line-height: 1.4;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .book-king-arthur .book-title {
+            color: #ffd700;
+        }
+
+        .book-alice .book-title {
+            color: #87ceeb;
+        }
+
+        .book-spine {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .book-king-arthur .book-spine {
+            background: #5a3a1f;
+        }
+
+        .book-alice .book-spine {
+            background: #1a3a5c;
+        }
+
+        .reading-progress {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            right: 15px;
+            height: 4px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.6);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .empty-slot {
+            width: 160px;
+            height: 240px;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #c9b99a;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .shelf {
+                padding: 20px;
+            }
+
+            .books {
+                justify-content: center;
+            }
+
+            .book {
+                width: 140px;
+                height: 210px;
+            }
+
+            .book-title {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>My Bookshelf</h1>
+        <p>Select a book to start reading</p>
+    </header>
+
+    <main class="bookshelf-container">
+        <section class="shelf">
+            <div class="shelf-label">Classics</div>
+            <div class="books">
+                <a href="king-arthur.html" class="book book-king-arthur" id="kingArthur">
+                    <div class="book-spine"></div>
+                    <div class="book-icon">&#9876;</div>
+                    <div class="book-title">King Arthur and the Knights of the Round Table</div>
+                    <div class="reading-progress">
+                        <div class="progress-bar" id="kingArthurProgress"></div>
+                    </div>
+                </a>
+                <a href="alice-in-wonderland.html" class="book book-alice" id="alice">
+                    <div class="book-spine"></div>
+                    <div class="book-icon">&#9827;</div>
+                    <div class="book-title">Alice's Adventures in Wonderland</div>
+                    <div class="reading-progress">
+                        <div class="progress-bar" id="aliceProgress"></div>
+                    </div>
+                </a>
+                <div class="empty-slot">More coming soon...</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Kindle-style Reader</p>
+    </footer>
+
+    <script>
+        // Load reading progress for each book
+        function loadProgress() {
+            // King Arthur progress
+            const kingArthurSettings = localStorage.getItem('kingArthurSettings');
+            if (kingArthurSettings) {
+                const settings = JSON.parse(kingArthurSettings);
+                const progress = ((settings.currentChapter + 1) / 10) * 100; // 10 chapters
+                document.getElementById('kingArthurProgress').style.width = progress + '%';
+            }
+
+            // Alice in Wonderland progress
+            const aliceSettings = localStorage.getItem('aliceSettings');
+            if (aliceSettings) {
+                const settings = JSON.parse(aliceSettings);
+                const progress = ((settings.currentChapter + 1) / 12) * 100; // 12 chapters
+                document.getElementById('aliceProgress').style.width = progress + '%';
+            }
+        }
+
+        loadProgress();
+    </script>
+</body>
+</html>
